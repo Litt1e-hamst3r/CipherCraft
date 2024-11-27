@@ -1,5 +1,5 @@
 import random
-from utils import bytes2long , long2bytes, mod_inverse
+from utils import bytes2long , long2bytes, mod_inverse, generate_large_prime
 
 class RSA_Cipher:
     def __init__(self, public_key=None, private_key=None,key_size=1024):
@@ -10,49 +10,9 @@ class RSA_Cipher:
         # 当没有设置，自动生成密钥对
         self.public_key, self.private_key = self.__generate_keys()
 
-
-    def __is_prime(self, n, k=5):
-        """
-        Miller-Rabin 素性检验算法
-        n: 待检测的数
-        k: 进行素性检验的迭代次数，默认为5次
-        返回: True 如果 n 是素数，False 如果 n 不是素数
-        """
-        if n <= 3:
-            return True
-        if n % 2 == 0 or n % 3 == 0:    # 排除一些简单的
-            return False
-
-        # 将 n - 1 表示为 2^s * d 的形式
-        s, d = 0, n - 1
-        while d % 2 == 0:
-            s += 1
-            d //= 2
-
-        # 进行 k 次独立的素性检验
-        for _ in range(k):
-            a = random.randint(2, n - 2)
-            x = pow(a, d, n)  # x = a^d % n
-            if x == 1 or x == n - 1:
-                continue
-
-            for _ in range(s - 1):
-                x = pow(x, 2, n)  # x = x^2 % n
-                if x == n - 1:
-                    break
-            else:
-                return False  # 如果没有找到合适的 x，则 n 不是素数
-        return True
-
-    def __generate_large_prime(self):
-        while True:
-            num = random.getrandbits(self.key_size)
-            if self.__is_prime(num):
-                return num
-
     def __generate_keys(self):
-        p = self.__generate_large_prime()
-        q = self.__generate_large_prime()
+        p = generate_large_prime(self.key_size)
+        q = generate_large_prime(self.key_size)
         n = p * q
         phi_n = (p - 1) * (q - 1)
         e = 65537

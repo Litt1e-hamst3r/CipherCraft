@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import random
 
 def str2bin(text):
     """字符串转二进制字符串"""
@@ -58,6 +59,45 @@ def mod_inverse(a, m):
     if x1 < 0:
         x1 += m0
     return x1
+
+def is_prime(n, k=5):
+    """
+    Miller-Rabin 素性检验算法
+    n: 待检测的数
+    k: 进行素性检验的迭代次数，默认为5次
+    返回: True 如果 n 是素数，False 如果 n 不是素数
+    """
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:    # 排除一些简单的
+        return False
+
+    # 将 n - 1 表示为 2^s * d 的形式
+    s, d = 0, n - 1
+    while d % 2 == 0:
+        s += 1
+        d //= 2
+
+    # 进行 k 次独立的素性检验
+    for _ in range(k):
+        a = random.randint(2, n - 2)
+        x = pow(a, d, n)  # x = a^d % n
+        if x == 1 or x == n - 1:
+            continue
+
+        for _ in range(s - 1):
+            x = pow(x, 2, n)  # x = x^2 % n
+            if x == n - 1:
+                break
+        else:
+            return False  # 如果没有找到合适的 x，则 n 不是素数
+    return True
+
+def generate_large_prime(key_size):
+    while True:
+        num = random.getrandbits(key_size)
+        if is_prime(num):
+            return num
 
 if __name__ == '__main__':
     # 示例长整数
