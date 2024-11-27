@@ -1,0 +1,9 @@
+{
+    "algorithm": "Caesar", 
+    "key": ["key"],
+    "mode": "encrypt",  
+    "message": "",
+    "key_type": "hex",
+    "input_type": "hex",
+    "output_type": "hex"
+}

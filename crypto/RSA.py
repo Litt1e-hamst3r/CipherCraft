@@ -1,14 +1,15 @@
 import random
-from utils import bytes2long , long2bytes, mod_inverse, generate_large_prime
+from .utils import bytes2long , long2bytes, mod_inverse, generate_large_prime
 
 class RSA_Cipher:
-    def __init__(self, public_key=None, private_key=None,key_size=1024):
+    def __init__(self, public_key=None, private_key=None,key_size=None):
         self.key_size = key_size
         if (public_key is not None) and (private_key is not None):
             self.public_key = public_key
             self.private_key = private_key
         # 当没有设置，自动生成密钥对
-        self.public_key, self.private_key = self.__generate_keys()
+        if key_size is not None:
+            self.public_key, self.private_key = self.__generate_keys()
 
     def __generate_keys(self):
         p = generate_large_prime(self.key_size)

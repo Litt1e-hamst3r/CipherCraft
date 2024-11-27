@@ -1,6 +1,6 @@
 import math
 import random
-from utils import long2bytes, bytes2long
+from .utils import long2bytes, bytes2long
 
 def mod_inverse(a, m):
     """ 使用快速幂计算 a 在模 m 下的逆元 """
@@ -53,7 +53,6 @@ class Point:
         x_r = (m**2 - self.x - other.x) % self.p
         y_r = (m * (self.x - x_r) - self.y) % self.p
         return Point(x_r, y_r, a=self.a, p=self.p)
-
     def double(self):
         if self.y == 0:
             return Point(None, None, True, a=self.a, p=self.p)
@@ -71,6 +70,26 @@ class Point:
             addend = addend.double()
             k >>= 1
         return result
+
+    def __str__(self):
+        if self.infinity:
+            return f"Infinity(a={self.a},p={self.p})"
+        return f"({self.x},{self.y},a={self.a},p={self.p})"
+
+    @classmethod
+    def from_string(cls, s):
+        if s.startswith("Infinity"):
+            _, a, p = s.split('(')[1].split(')')[0].split(',')
+            a = int(a.split('=')[1])
+            p = int(p.split('=')[1])
+            return cls(None, None, infinity=True, a=a, p=p)
+        else:
+            x, y, a, p = s.strip('()').split(',')
+            x = int(x)
+            y = int(y)
+            a = int(a.split('=')[1])
+            p = int(p.split('=')[1])
+            return cls(x, y, a=a, p=p)
 
 class ECC_Cipher:
     def __init__(self, p=None, a=None, b=None, G=None, n=None):
@@ -127,7 +146,7 @@ class ECC_Cipher:
 
 
 if __name__ == '__main__':
-    # 示例用法
+    # # 示例用法
     ecc_cipher = ECC_Cipher()
     print(f"Private Key: {ecc_cipher.private_key}")
     print(f"Public Key: ({ecc_cipher.public_key.x}, {ecc_cipher.public_key.y})")

@@ -1,4 +1,4 @@
-from utils import str2bin, bin2str, bytes2bin, bin2bytes
+from .utils import bytes2bin, bin2bytes
 import re
 
 

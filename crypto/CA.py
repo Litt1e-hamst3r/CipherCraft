@@ -1,5 +1,5 @@
 import numpy as np
-from utils import bin2bytes
+from .utils import bin2bytes
 
 class CA_Cipher:
     def __init__(self, seed, rule, key_position=0):

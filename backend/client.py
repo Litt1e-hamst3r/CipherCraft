@@ -1,5 +1,3 @@
-import json
-import socket
 import sys
 import os
 # 获取项目根目录的绝对路径
