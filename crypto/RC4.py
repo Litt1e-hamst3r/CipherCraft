@@ -33,7 +33,9 @@ class RC4_Cipher:
 if __name__ == "__main__":
     rc4 = RC4_Cipher(b"key")
     enc = rc4.encrypt(b"this is a test")
-    print(enc.hex())
+    print(enc)
     print(rc4.key)
-    dec = rc4.encrypt(enc)
-    print(dec)
+    hex_enc = enc.hex()
+    bytes_enc = bytes.fromhex(hex_enc)
+    dec = rc4.encrypt(bytes_enc)
+    print(dec.decode('utf-8'))

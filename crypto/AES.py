@@ -131,7 +131,6 @@ class AES_Cipher:
         
 
     def encrypt(self, plaintext):
-        print(len(plaintext))
         # 计算需要填充的字节数
         padding_length = (16 - (len(plaintext) % 16)) % 16
         # 填充到 16 字节的倍数
