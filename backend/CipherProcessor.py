@@ -127,12 +127,117 @@ class CipherProcessor:
             
             if not 0 <= key <= 25: return self.__generate_error(-1, "key 必须为0~25之间的整数")
         except: return self.__generate_error(-1, "key 必须为0~25之间的整数")
-        cs = danbiao.Danbiao_Cipher()
         if mode=='encrypt':
-            return cs.caesar_cipher(message, key)
+            return danbiao.Danbiao_Cipher().caesar_cipher(message, key)
         elif mode=='decrypt':
-            return cs.caesar_cipher(message, key, decrypt=True)
+            return danbiao.Danbiao_Cipher().caesar_cipher(message, key, decrypt=True)
+
+    def process_keyword(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "key 格式错误")
+        if mode=='encrypt':
+            return danbiao.Danbiao_Cipher().keyword_cipher(message, key)
+        elif mode=='decrypt':
+            return danbiao.Danbiao_Cipher().keyword_cipher(message, key, decrypt=True)
+
+    def process_affine(self, message, key, mode):
+        try:
+            a, b = int(key[0]), int(key[1])
+            if not 1 <= a <= 26: return self.__generate_error(-1, "a 必须为1~26之间的整数")
+            if not 0 <= b <= 26: return self.__generate_error(-1, "b 必须为0~26之间的整数")
+        except: return self.__generate_error(-1, "Affine key 格式错误")
+        try:
+            if mode=='encrypt':
+                return danbiao.Danbiao_Cipher().affine_cipher(message, a, b)
+            elif mode=='decrypt':
+                return danbiao.Danbiao_Cipher().affine_cipher(message, a, b, decrypt=True)
+        except Exception as e:
+            return self.__generate_error(-1, "加密/解密失败: "+str(e))
+        
+    def process_multiliteral(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Multiliteral key 格式错误")
+        if mode=='encrypt':
+            return danbiao.Danbiao_Cipher().multiliteral_cipher(message, key)
+        elif mode=='decrypt':
+            return danbiao.Danbiao_Cipher().multiliteral_cipher(message, key, decrypt=True)
     
+    def process_vigenere(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Vigenere key 格式错误")
+        try:
+            if mode=='encrypt':
+                return duobiao.Duobiao_Cipher().vigenere_cipher(message, key)
+            elif mode=='decrypt':
+                return duobiao.Duobiao_Cipher().vigenere_cipher(message, key, decrypt=True)
+        except Exception as e:
+            return self.__generate_error(-1, "加密/解密失败，请判断输入是否是字母表")
+
+    def process_autokey_ciphertext(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Autokey key 格式错误")
+        try:
+            if mode=='encrypt':
+                return duobiao.Duobiao_Cipher().autokey_cipher_ciphertext(message, key)
+            elif mode=='decrypt':
+                return duobiao.Duobiao_Cipher().autokey_cipher_ciphertext(message, key, decrypt=True)
+        except Exception as e:
+            return self.__generate_error(-1, "加密/解密失败，请判断输入是否是字母表")
+
+    # 这个的实现有 bug (只能是字母表)
+    def process_autokey_plaintext(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Autokey key 格式错误")
+        try:
+            if mode=='encrypt':
+                return duobiao.Duobiao_Cipher().autokey_cipher_plaintext(message, key)
+            elif mode=='decrypt':
+                return duobiao.Duobiao_Cipher().autokey_cipher_plaintext(message, key, decrypt=True)
+        except Exception as e:
+            return self.__generate_error(-1, "加密/解密失败，请判断输入是否是字母表")
+
+    def process_playfair(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Playfair key 格式错误")
+        if mode=='encrypt':
+            return duotu.Playfair_Cipher().encrypt(message, key)
+        elif mode=='decrypt':
+            return duotu.Playfair_Cipher().decrypt(message, key)
+    
+    # TODO 置换(但是返回的是元组，不符合) 
+    def process_permutation(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Permutation key 格式错误")
+        if mode=='encrypt':
+            return zhihuan.Zhihuan_Cipher().encrypt_permutation(message, key)
+        elif mode=='decrypt':
+            return zhihuan.Zhihuan_Cipher().decrypt_permutation(message, key)
+
+    def process_column_permutation(self, message, key, mode):
+        try:
+            key = key[0].encode()
+        except: return self.__generate_error(-1, "Column Permutation key 格式错误")
+        if mode=='encrypt':
+            return zhihuan.Zhihuan_Cipher().column_permutation_encrypt(message, key)
+        elif mode=='decrypt':
+           return zhihuan.Zhihuan_Cipher().column_permutation_decrypt(message, key)
+
+    def process_double_transposition(self, message, key, mode):
+        try:
+            key1, key2 = key[0].encode(), key[1].encode()
+        except: return self.__generate_error(-1, "Double Transposition key 格式错误")
+        if mode=='encrypt':
+            return zhihuan.Zhihuan_Cipher().double_transpose_encrypt(message, key1, key2)
+        elif mode=='decrypt':
+            return zhihuan.Zhihuan_Cipher().double_transpose_decrypt(message, key1, key2)
+
     def process(self):
         
         for json_part in self.json_list:
@@ -179,13 +284,38 @@ class CipherProcessor:
                 result = self.process_ca(self.message, seed_str, rule, key_position, mode)
 
             # 传统的加解密算法
-                # 单表：
-                # 'Caesar',
-                # 'Keyword',
-                # 'Affine',
-                # 'Multiliteral',
+            # 单表替代密码
             elif alogorithm == 'Caesar':
                 result = self.process_caesar(self.message, key, mode)
+            elif alogorithm == 'Keyword':
+                result = self.process_keyword(self.message, key, mode)
+            elif alogorithm == 'Affine':
+                result = self.process_affine(self.message, key, mode)
+            elif alogorithm == 'Multiliteral':
+                result = self.process_multiliteral(self.message, key, mode)
+            # 多表替代密码
+            # 'Vigenere',
+            elif alogorithm == 'Vigenere':
+                result = self.process_vigenere(self.message, key, mode)
+            # Autokey ciphertext
+            elif alogorithm == 'Autokey ciphertext':
+                result = self.process_autokey_ciphertext(self.message, key, mode)
+            # Autokey plaintext
+            elif alogorithm == 'Autokey plaintext':
+                result = self.process_autokey_plaintext(self.message, key, mode)
+
+            # 'Playfair',
+            elif alogorithm == 'Playfair':
+                result = self.process_playfair(self.message, key, mode)
+            # 'Permutation'
+            elif alogorithm == 'Permutation':
+                result = self.process_permutation(self.message, key, mode)
+            # 'Column permutation'
+            elif alogorithm == 'Column permutation':
+                result = self.process_column_permutation(self.message, key, mode)
+            # 'Double-Transposition'
+            elif alogorithm == 'Double-Transposition':
+                result = self.process_double_transposition(self.message, key, mode)
 
             # 自动生成密钥就结束
             elif alogorithm == 'Auto RSA Key':
@@ -194,7 +324,7 @@ class CipherProcessor:
             elif alogorithm == 'Auto ECC Key':
                 result = self.process_auto_ecc(key[0])
                 return result
-            
+ 
             # 判断 result 是否为 {"error_code": error_code, "error_message": error_message} 格式
             if isinstance(result, dict) and 'error_code' in result and 'error_message' in result:
                 return result
@@ -204,6 +334,7 @@ class CipherProcessor:
                 self.message = result.hex()
             elif json_part['output_type'] == 'Raw':
                 try:
+                    print(result)
                     self.message = result.decode()
                 except:
                     return self.__generate_error(-1, "无法转为 Raw, 请尝试 Hex")
@@ -252,6 +383,37 @@ if __name__ == '__main__':
 
     # Caesar
     # json_list = [{'algorithm': 'Caesar', 'key': ['12'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Caesar', 'key': ['12'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # Keyword
+    # json_list = [{'algorithm': 'Keyword', 'key': ['sdasfadfa'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Keyword', 'key': ['sdasfadfa'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # Affine
+    # json_list = [{'algorithm': 'Affine', 'key': ['3', '7'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Affine', 'key': ['3', '7'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+    
+    # Multiliteral
+    # json_list = [{'algorithm': 'Multiliteral', 'key': ['1234567'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Multiliteral', 'key': ['1234567'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # 'Vigenere'
+    # json_list = [{'algorithm': 'Vigenere', 'key': ['abc'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Vigenere', 'key': ['abc'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+    
+    # 'Autokey ciphertext'
+    # json_list = [{'algorithm': 'Autokey ciphertext', 'key': ['abc'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Autokey ciphertext', 'key': ['abc'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # 'Autokey plaintext'
+    # json_list = [{'algorithm': 'Autokey plaintext', 'key': ['THISKEY'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Autokey plaintext', 'key': ['THISKEY'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # 'Playfair',
+    # json_list = [{'algorithm': 'Playfair', 'key': ['abcdefghiklmnopqrstuvwxyz'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Playfair', 'key': ['abcdefghiklmnopqrstuvwxyz'], 'mode': 'decrypt', 'key_type': '', 'input_type':'Raw', 'output_type': 'Raw'}]
+    
+    # 'Permutation' TODO 无法实现
+    # json_list = [{'algorithm': 'Permutation', 'key': ['1234567890'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Permutation', 'key': ['1234567890'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+    
+    # 'Column permutation',
+    # json_list = [{'algorithm': 'Column permutation', 'key': ['1234567890'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Column permutation', 'key': ['1234567890'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
+    # 'Double-Transposition'
+    json_list = [{'algorithm': 'Double-Transposition', 'key': ['qwe', 'ewrqew'], 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}, {'algorithm': 'Double-Transposition', 'key': ['qwe', 'ewrqew'], 'mode': 'decrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Raw'}]
+
 
     print(f"message: {message}")
     cipher_processor = CipherProcessor(message, json_list)

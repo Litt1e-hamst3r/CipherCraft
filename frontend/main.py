@@ -3,7 +3,7 @@ import os
 from base64 import b64encode
 from PyQt5.QtWidgets import QComboBox,QCheckBox,QApplication,QFormLayout, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QLineEdit, QScrollArea, QFrame, QPushButton
 from PyQt5.QtCore import Qt, QMimeData, QPoint, QRect
-from PyQt5.QtGui import QDrag, QDragEnterEvent, QDropEvent
+from PyQt5.QtGui import QCursor,QDrag, QDragEnterEvent, QDropEvent
 import traceback
 
 
@@ -45,32 +45,60 @@ class DraggableWidget(QFrame):
             print(f"Error in mousePressEvent: {e}")
             traceback.print_exc()
 
+
     def mouseMoveEvent(self, event):
         try:
             if self.is_dragging:
                 delta = event.pos() - self.drag_start_position
+                # 保持x坐标不变
+                new_x = self.x()
                 new_y = self.y() + delta.y()
 
+                # 获取鼠标在屏幕上的位置
+                global_mouse_pos = QCursor.pos()
+                # 将全局鼠标位置转换为相对于QScrollArea的局部位置
+                local_mouse_pos = self.scroll_area.mapFromGlobal(global_mouse_pos)
+
+                # 检查是否需要滚动
                 if self.scroll_area:
                     visible_rect = self.scroll_area.viewport().rect()
+                    viewport_height = visible_rect.height()
+                    scroll_bar_v = self.scroll_area.verticalScrollBar()
 
-                    if new_y >= 0 and new_y + self.height() <= visible_rect.height():
-                        self.move(self.x(), new_y)
+                    # 计算滚动量
+                    scroll_amount = 10
 
-                    self.last_mouse_move_position = event.pos()
+                    # 向上滚动
+                    if local_mouse_pos.y() < 20 and scroll_bar_v.value() > 0:  # 鼠标距离顶部20像素内
+                        # 如果小部件超出顶部，计算实际可以滚动的距离
+                        actual_scroll_amount = min(scroll_amount, scroll_bar_v.value())
+                        scroll_bar_v.setValue(scroll_bar_v.value() - actual_scroll_amount)
+                        # 更新new_y以反映滚动
+                        new_y += actual_scroll_amount
+                    # 向下滚动
+                    elif (local_mouse_pos.y() > (viewport_height - 20)) and \
+                        scroll_bar_v.value() < scroll_bar_v.maximum():  # 鼠标距离底部20像素内
+                        # 如果小部件超出底部，计算实际可以滚动的距离
+                        actual_scroll_amount = min(scroll_amount, scroll_bar_v.maximum() - scroll_bar_v.value())
+                        scroll_bar_v.setValue(scroll_bar_v.value() + actual_scroll_amount)
+                        # 更新new_y以反映滚动
+                        new_y -= actual_scroll_amount
 
-                    if abs(delta.x()) > self.delete_threshold:
-                        self.setStyleSheet(self.delete_style)  # 标红
-                        self.should_delete = True
-                    else:
-                        self.setStyleSheet(self.normal_style)  # 重置样式
-                        self.should_delete = False
+                # 更新小部件位置
+                self.move(new_x, new_y)
+
+                # 检查水平移动距离是否超过阈值
+                if abs(delta.x()) > self.delete_threshold:
+                    self.setStyleSheet(self.delete_style)  # 标红
+                    self.should_delete = True
+                else:
+                    self.setStyleSheet(self.normal_style)  # 重置样式
+                    self.should_delete = False
 
             super(DraggableWidget, self).mouseMoveEvent(event)
         except Exception as e:
             print(f"Error in mouseMoveEvent: {e}")
             traceback.print_exc()
-
     def mouseReleaseEvent(self, event):
         try:
             if event.button() == Qt.LeftButton and self.is_dragging:
@@ -424,26 +452,28 @@ class DropWidget(QWidget):
         # TODO 这里还有两个RSA和ECC的加密算法，需要单独处理
         if text == "Affine" or text =="Double-Transposition":
             widget_to_add = WidgetTypeA(text, self.scroll_widget, self.scroll_area)
-        elif text == "RC4 Encryption" or text == "Keyword" or text == "Caesar" or text == "Multiliteral" or text == "Vigenere" or text == "Autokey ciphertext" or text == "Autokey plaintext" or text == "Playfair" or text == "Permutation" or text == "Column permutation":
+        elif text == "Keyword" or text == "Caesar" or text == "Multiliteral" or text == "Vigenere" or text == "Autokey ciphertext" or text == "Autokey plaintext" or text == "Playfair" or text == "Permutation" or text == "Column permutation":
             widget_to_add = WidgetTypeB(text, self.scroll_widget, self.scroll_area)
         elif text == "CA Encryption":
             widget_to_add = WidgetTypeC(text, self.scroll_widget, self.scroll_area)
         elif text == "Auto ECC Key" or text == "Auto RSA Key":
             widget_to_add = WidgetTypeD(text, self.scroll_widget, self.scroll_area)
-        elif text == "AES Encryption" or text == "DES Encryption":
+        elif text == "RC4 Encryption" or text == "AES Encryption" or text == "DES Encryption":
             widget_to_add = WidgetTypeE(text, self.scroll_widget, self.scroll_area)
         elif text == "deAffine" or text =="deDouble-Transposition":
             widget_to_add = WidgetTypeG(text, self.scroll_widget, self.scroll_area)
         elif text == "RSA Encryption" or text == "ECC Encryption":
             widget_to_add = WidgetTypeF(text, self.scroll_widget, self.scroll_area)
-        elif text == "RC4 Decryption" or text == "deKeyword" or text == "deCaesar" or text == "deMultiliteral" or text == "deVigenere" or text == "deAutokey ciphertext" or text == "deAutokey plaintext" or text == "dePlayfair" or text == "dePermutation" or text == "deColumn permutation":
+        elif  text == "deKeyword" or text == "deCaesar" or text == "deMultiliteral" or text == "deVigenere" or text == "deAutokey ciphertext" or text == "deAutokey plaintext" or text == "dePlayfair" or text == "dePermutation" or text == "deColumn permutation":
             widget_to_add = WidgetTypeH(text, self.scroll_widget, self.scroll_area)
         elif text == "CA Decryption":
             widget_to_add = WidgetTypeI(text, self.scroll_widget, self.scroll_area)
-        elif text == "AES Decryption" or text == "DES Decryption":
+        elif text == "RC4 Decryption" or text == "AES Decryption" or text == "DES Decryption":
             widget_to_add = WidgetTypeJ(text, self.scroll_widget, self.scroll_area)
-        elif text == "RSA Decryption" or text == "ECC Decryption":
+        elif text == "RSA Decryption":
             widget_to_add = WidgetTypeK(text, self.scroll_widget, self.scroll_area)
+        elif text == "ECC Decryption":
+            widget_to_add = WidgetTypeEccDe(text, self.scroll_widget, self.scroll_area)
         elif text == "From Base64" or text == "To Base64" or text == "To Hex" or text == "From Hex" or text == "MD5 Hashing":
             widget_to_add = WidgetTypeL(text, self.scroll_widget, self.scroll_area)
         else:
@@ -671,6 +701,64 @@ class WidgetTypeK(DraggableWidget):
             "input_type": self.input_type.currentText(),
             "output_type": self.output_type.currentText()
         }   
+        
+class WidgetTypeEccDe(DraggableWidget):
+    def __init__(self, text, parent=None, scroll_area=None):
+        super().__init__(text, parent, scroll_area)
+        self.setFixedSize(300, 240)
+        self.label.setText(f"{text}")
+        
+        # 创建一个表单布局
+        form_layout = QFormLayout()
+        
+        # 创建新的标签和输入框部件
+        self.C1x = QLineEdit(self)
+        self.C1x.setPlaceholderText("请输入私钥模数n")
+        self.C1x.setStyleSheet("QLineEdit { background-color: lightyellow; }")
+        form_layout.addRow(self.C1x)
+        
+        self.C1y = QLineEdit(self)
+        self.C1y.setPlaceholderText("请输入私钥模数n")
+        self.C1y.setStyleSheet("QLineEdit { background-color: lightyellow; }")
+        form_layout.addRow(self.C1y)
+        
+        self.key_edit = QLineEdit(self)
+        self.key_edit.setPlaceholderText("请输入私钥底数d")
+        self.key_edit.setStyleSheet("QLineEdit { background-color: lightyellow; }")
+        form_layout.addRow(self.key_edit)
+        
+        # 创建包含两个下拉菜单的水平布局
+        combo_layout = QHBoxLayout()
+        self.input_type = QComboBox(self)
+        self.input_type.addItems(["Hex", "Raw"])
+        self.input_type.setStyleSheet("QComboBox { background-color: lightyellow; }")
+        self.output_type = QComboBox(self)
+        self.output_type.addItems(["Hex", "Raw"])
+        self.output_type.setStyleSheet("QComboBox { background-color: lightyellow; }")
+        combo_layout.addWidget(self.input_type)
+        combo_layout.addWidget(self.output_type)
+        
+        # 将水平布局添加到表单布局中，作为一行
+        form_layout.addRow("Input/Output", combo_layout)
+        
+        # 获取父类原有的垂直布局（也可以选择创建新的外层布局，这里以使用原布局为例）
+        layout = self.layout()
+        # 将表单布局添加到原垂直布局中，它会在垂直方向上位于合适位置（排在原有QLabel下方等情况）
+        layout.addLayout(form_layout)
+
+    def get_contents(self):
+        return {
+            "algorithm":self.label.text(),
+            "key": {
+                "public_key":["",""],
+                "private_key":[self.C1x.text(),self.C1y.text(),self.key_edit.text()]
+            },
+            "mode":"decrypt",
+            "key_type": "",
+            "input_type": self.input_type.currentText(),
+            "output_type": self.output_type.currentText()
+        }   
+
 class WidgetTypeG(DraggableWidget):
     def __init__(self, text, parent=None, scroll_area=None):
         super().__init__(text, parent, scroll_area)
@@ -814,17 +902,17 @@ class WidgetTypeC(DraggableWidget):
         
         # 创建新的标签和输入框部件
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("初始状态")
+        self.name_edit.setPlaceholderText("初始状态，不得为空")
         self.name_edit.setStyleSheet("QLineEdit { background-color: white; }")
         form_layout.addRow(self.name_edit)
         
         self.key_edit = QLineEdit(self)
-        self.key_edit.setPlaceholderText("密钥转移规则")
+        self.key_edit.setPlaceholderText("密钥转移规则，不能大于255")
         self.key_edit.setStyleSheet("QLineEdit { background-color: white; }")
         form_layout.addRow(self.key_edit)
         
         self.key_edit2 = QLineEdit(self)
-        self.key_edit2.setPlaceholderText("密钥位置")
+        self.key_edit2.setPlaceholderText("密钥位置，需要小于 len(初始状态)")
         self.key_edit2.setStyleSheet("QLineEdit { background-color: white; }")
         form_layout.addRow(self.key_edit2)
         
@@ -869,17 +957,17 @@ class WidgetTypeI(DraggableWidget):
         
         # 创建新的标签和输入框部件
         self.name_edit = QLineEdit(self)
-        self.name_edit.setPlaceholderText("初始状态")
+        self.name_edit.setPlaceholderText("初始状态,不得为空")
         self.name_edit.setStyleSheet("QLineEdit { background-color: lightyellow; }")
         form_layout.addRow(self.name_edit)
         
         self.key_edit = QLineEdit(self)
-        self.key_edit.setPlaceholderText("密钥转移规则")
+        self.key_edit.setPlaceholderText("密钥转移规则,不能大于255")
         self.key_edit.setStyleSheet("QLineEdit { background-color: lightyellow; }")
         form_layout.addRow(self.key_edit)
         
         self.key_edit2 = QLineEdit(self)
-        self.key_edit2.setPlaceholderText("密钥位置")
+        self.key_edit2.setPlaceholderText("密钥位置，需要小于 len(初始状态)")
         self.key_edit2.setStyleSheet("QLineEdit { background-color: lightyellow; }")
         form_layout.addRow(self.key_edit2)
         
