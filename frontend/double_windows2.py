@@ -6,6 +6,16 @@ from .single_scroll_area_widget import ScrollAreaWidget
 from .single_drop_drag_label import DraggableLabel, DropLabel
 from .single_draggable_widget import DraggableWidget
 from .double_history_widget import CustomHistoryWidget
+import os
+import sys
+import threading 
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 将项目根目录添加到 sys.path
+sys.path.append(project_root)
+from backend.client import send_once
+from backend.server import receive_once
+from backend.network import NetworkHandler
+import random
 
 class Window2(QWidget):
 
@@ -13,6 +23,7 @@ class Window2(QWidget):
         super().__init__()
         self.switch_window = switch_window_callback
         self.initUI()
+        self.start_receive_thread('0.0.0.0', random.randrange(4000, 65535))
 
     def initUI(self):
         self.setWindowTitle('Integrated Drag and Drop Example')
@@ -26,10 +37,25 @@ class Window2(QWidget):
         left_label = QLabel('Double Machine', self)
         left_label.setStyleSheet("background-color: lightblue; padding: 20px;")
         horizontal_layout.addWidget(left_label)
-        right_label = QLabel('Change Mode', self)
-        right_label.setStyleSheet("background-color: lightblue; padding: 20px;")
-        right_label.mousePressEvent = self.on_left_label_click
-        horizontal_layout.addWidget(right_label)
+
+        # 创建一个 QLabel
+        right_button = QPushButton('Change Mode', self)
+        right_button.setStyleSheet("""
+            padding: 20px;
+
+        """)
+        right_button.clicked.connect(lambda: self.switch_window(0))
+        # right_label = QLabel('Change Mode', self)
+        # right_label.setStyleSheet("""
+        #     background-color: lightblue;
+        #     padding: 20px;
+
+        # """)
+        
+        # right_label.mousePressEvent = self.on_left_label_click
+        # right_label.mouseGrabber = self.on_left_label_movein
+        
+        horizontal_layout.addWidget(right_button)
         left_layout.addLayout(horizontal_layout)
 
         self.search_input = QLineEdit(self)
@@ -167,6 +193,14 @@ class Window2(QWidget):
     def on_left_label_click(self, event):
         print("Left label clicked!")
         self.switch_window(0)
+        
+    # def on_left_label_movein(self):
+    #         self.right_label.setStyleSheet("""
+    #         background-color: blue;
+    #         padding: 20px;
+
+    #     """)
+
 
     def create_scroll_area(self):
         scroll_area = QScrollArea()
@@ -274,16 +308,44 @@ class Window2(QWidget):
         msg_box.setText(message)
         msg_box.exec_()
     def submit(self):
-        custom_widgets_info = self.get_custom_widgets_info()
-        print("自定义控件信息:", custom_widgets_info)
-        IPinfo = self.ip_edit.text()
-        print("IP信息:", IPinfo)
-        PortInfo = self.port_edit.text()
-        print("端口信息:", PortInfo)
-        right_input_text = self.get_right_input_text()
-        self.add_new_widget2(right_input_text, "type1")
-        self.add_new_widget2(right_input_text, "type2")
-        # 弹窗测试
-        # self.show_popup_message("提交成功！")
-        print("右侧用户输入内容:", right_input_text)
-        self.text_edit_output.setPlainText("啊啦啦啦啦")
+        try:
+            IPinfo = self.ip_edit.text()
+            PortInfo = self.port_edit.text()
+            right_input_text = self.get_right_input_text()
+            custom_widgets_info = self.get_custom_widgets_info()
+            error = send_once(IPinfo, int(PortInfo), right_input_text.encode(), custom_widgets_info)
+            print(error)
+            path_info = self.label.return_file_path()
+            print(path_info)
+            
+            print("自定义控件信息:", custom_widgets_info)
+            print("IP信息:", IPinfo)
+            print("端口信息:", PortInfo)
+            
+            self.add_new_widget2(right_input_text, "type1")
+        except Exception as e:
+            self.show_popup_message(str(e))
+
+    def receive_thread(self, ip, port):
+        while True:
+            # 接受连接
+            network_handler = NetworkHandler(ip, port)
+            network_handler.socket.listen(1)
+            client_socket, addr = network_handler.socket.accept()
+            network_handler.socket = client_socket
+            print(f"Server started on {network_handler.host}:{network_handler.port}")
+            print(f"Connected to {addr}")
+            dec = receive_once(network_handler)
+            self.add_new_widget2(dec.decode(), "type2")
+            print(dec.decode())
+    def start_receive_thread(self, ip, port):
+        print("Starting receive thread...")
+        print("IP:", ip)
+        print("Port:", port)
+        # 创建线程对象并传递 self 作为参数
+        thread = threading.Thread(target=self.receive_thread, args=(ip, port))
+        # 设置线程为守护线程
+        thread.daemon = True
+        # 启动线程
+        thread.start()
+        return thread

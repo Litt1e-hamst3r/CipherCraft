@@ -23,7 +23,6 @@ class CipherProcessor:
         # 判断 key 是否是 128 比特
         if len(key) != 16:
             return self.__generate_error(-1, "key 应该为 128 比特")
-        key = (key[0], key[1])
         aes = AES.AES_Cipher(key)
         if mode == 'encrypt':
             return aes.encrypt(message)
@@ -341,6 +340,16 @@ class CipherProcessor:
                 elif alogorithm == 'Auto ECC Key':
                     result = self.process_auto_ecc(key[0])
                     return result
+                
+                # 其他
+                elif alogorithm == 'To Hex':
+                    result = self.message.encode().hex()
+                elif alogorithm == 'From Hex':
+                    result = bytes.fromhex(self.message).decode()
+                elif alogorithm == 'To Base64':
+                    result = base64.b64encode(self.message.encode()).decode()
+                elif alogorithm == 'From Base64':
+                    result = base64.b64decode(self.message).decode()
 
                 # 判断 result 是否为 {"error_code": error_code, "error_message": error_message} 格式
                 if isinstance(result, dict) and 'error_code' in result and 'error_message' in result:
@@ -360,7 +369,7 @@ class CipherProcessor:
                 # 输出解密结果
             return self.message
         except Exception as e:
-            return self.__generate_error(-1, "发生错误："+str(e))
+            return self.__generate_error(-2, "发生错误："+str(e))   # 发生了未知的错误（-2）
             
     # 更加简单的 process 操作
     # 输入的 message 固定为 bytes 类型
@@ -370,6 +379,11 @@ class CipherProcessor:
         C1 = ""     # 暂存 C1
 
         for alogorithm, key in zip(self.json_list, key_list):
+            
+            # 简单的类型处理
+            if isinstance(key, list) and len(key) == 1 and isinstance(key[0], str): 
+                key = key[0].encode()
+
             if alogorithm == 'AES': result = self.process_aes(self.message, key, mode)
             elif alogorithm == 'DES': result = self.process_des(self.message, key, mode)
             elif alogorithm == 'RC4': result = self.process_rc4(self.message, key, mode) 
@@ -419,12 +433,12 @@ if __name__ == '__main__':
     # ECC encrypt
     # json_list = [{'algorithm': 'ECC', 'key': {'public_key': ['72700708536793286189700092802166568116408092341783000567130196869862852866517', '96676952564767445173395068126200898054474725506638262144492283233005224230126'], 'private_key': ['', '']}, 'mode': 'encrypt', 'key_type': '', 'input_type': 'Raw', 'output_type': 'Hex'},]
     # ECC decrypt
-    message = "a7cf0a34f89a832c88456454582fd4e9a99889e86fbb3c31d6ab90a45f648b48"
-    json_list = [{'algorithm': 'ECC', 'key': {'public_key': ['', ''], 'private_key': ['41031872500330896324117368551512841166567919784393892103725375678091008386330', '4172558346003933223247840607826297906270650023398740643420497153666162351469', '50613016897095371335726342381219217750727084709287216287047745755920187282328']}, 'mode': 'decrypt', 'key_type': '', 'input_type': 'Hex', 'output_type': 'Raw'},]
+    # message = "a7cf0a34f89a832c88456454582fd4e9a99889e86fbb3c31d6ab90a45f648b48"
+    # json_list = [{'algorithm': 'ECC', 'key': {'public_key': ['', ''], 'private_key': ['41031872500330896324117368551512841166567919784393892103725375678091008386330', '4172558346003933223247840607826297906270650023398740643420497153666162351469', '50613016897095371335726342381219217750727084709287216287047745755920187282328']}, 'mode': 'decrypt', 'key_type': '', 'input_type': 'Hex', 'output_type': 'Raw'},]
     
     # AES
-    # json_list = [{'algorithm': 'AES', 'key': ['1234567890123456'], 'mode': 'encrypt', 'key_type': 'Raw', 'input_type': 'Raw', 'output_type': 'Hex'}, 
-    #              {'algorithm': 'AES', 'key': ['1234567890123456'], 'mode': 'decrypt', 'key_type': 'Raw', 'input_type': 'Hex', 'output_type': 'Raw'}]
+    json_list = [{'algorithm': 'AES', 'key': ['1234567890123456'], 'mode': 'encrypt', 'key_type': 'Raw', 'input_type': 'Raw', 'output_type': 'Hex'}, 
+                 {'algorithm': 'AES', 'key': ['1234567890123456'], 'mode': 'decrypt', 'key_type': 'Raw', 'input_type': 'Hex', 'output_type': 'Raw'}]
     
     # DES
     # json_list = [{'algorithm': 'DES', 'key': ['12345678'], 'mode': 'encrypt', 'key_type': 'Raw', 'input_type': 'Raw', 'output_type': 'Hex'}, {'algorithm': 'DES', 'key': ['12345678'], 'mode': 'decrypt', 'key_type': 'Raw', 'input_type': 'Hex', 'output_type': 'Raw'}]

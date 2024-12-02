@@ -18,6 +18,7 @@ class DropWidget(QWidget):
         super().__init__()
         self.switch_window = switch_window_callback
         self.initUI()
+        # self.file_path = None  # 用于存储文件路径
 
     def initUI(self):
         self.setWindowTitle('Integrated Drag and Drop Example')
@@ -38,10 +39,17 @@ class DropWidget(QWidget):
 
         # 创建按钮
         #button = QPushButton('Click Me', self)
-        right_label = QLabel('Change Mode', self)
-        right_label.setStyleSheet("background-color: lightblue; padding: 20px;")
-        right_label.mousePressEvent = self.on_left_label_click
-        horizontal_layout.addWidget(right_label)
+                # 创建一个 QLabel
+        right_button = QPushButton('Change Mode', self)
+        right_button.setStyleSheet("""
+            padding: 20px;
+
+        """)
+        right_button.clicked.connect(lambda: self.switch_window(1))
+        # right_label = QLabel('Change Mode', self)
+        # right_label.setStyleSheet("background-color: lightblue; padding: 20px;")
+        # right_label.mousePressEvent = self.on_left_label_click
+        horizontal_layout.addWidget(right_button)
 
         # 将水平布局添加到垂直布局中
         left_layout.addLayout(horizontal_layout)
@@ -168,9 +176,9 @@ class DropWidget(QWidget):
 
         self.update_search_results()
 
-    def on_left_label_click(self, event):
-        print("Left label clicked!")
-        self.switch_window(1)
+    # def on_left_label_click(self, event):
+    #     print("Left label clicked!")
+    #     self.switch_window(1)
     def create_scroll_area(self):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -213,7 +221,7 @@ class DropWidget(QWidget):
         # 在中间布局的新QLabel中显示拖放相关信息
         self.drop_info_label.setText(f"Selected Mode: {text}")
 
-    def resizeEvent(self,event):  # 更新 QScrollArea 的宽度
+    def resizeEvent(self, event):  # 更新 QScrollArea 的宽度
         try:
             total_width = self.width()
             left_width = self.layout().itemAt(0).geometry().width()
@@ -298,7 +306,7 @@ class DropWidget(QWidget):
         
     @staticmethod
     def standardize_algorithm_names(array):
-        print("进入到 standardize_algorithm_names函数")
+        # print("进入到 standardize_algorithm_names函数")
         
         # 定义加密和解密算法的映射
         algorithm_mapping = {
@@ -338,7 +346,7 @@ class DropWidget(QWidget):
             'ECC Decryption': 'ECC'
         }
 
-        print("尝试遍历并更改")
+        # print("尝试遍历并更改")
         
         # 遍历每个字典并更新算法名称
         for dic in array:  # 假设 array 是一个包含字典的列表
@@ -348,18 +356,25 @@ class DropWidget(QWidget):
                     dic['algorithm'] = algorithm_mapping[original_name]
 
         return array  # 返回整个处理过的数组
+    
+    # def handle_file_dropped(self, file_path):
+    #     print(f"File dropped: {file_path}")
+    #     self.file_path = file_path  # 存储文件路径
+    
     def submit(self):
-        print("Submit button clicked1")
+        # 获取拖拽文件地址相关信息
+        path_info = self.label.return_file_path()
+        print(path_info)
         custom_widgets_info = self.get_custom_widgets_info()
-        print("get_custom_widgets_info")
-        print("自定义控件信息:", custom_widgets_info)
+        # print("get_custom_widgets_info")
+        # print("自定义控件信息:", custom_widgets_info)
         custom_widgets_info2 = self.standardize_algorithm_names(custom_widgets_info)
         right_input_text = self.get_right_input_text()
-        print("Submit button clicked2")
-        print("自定义控件信息:", custom_widgets_info2)
-        print("右侧用户输入内容:", right_input_text)
+        # print("Submit button clicked2")
+        # print("自定义控件信息:", custom_widgets_info2)
+        # print("右侧用户输入内容:", right_input_text)
         cipher_processor = CipherProcessor(right_input_text, custom_widgets_info2)
-        print("custom_widgets_info2", custom_widgets_info2)
+        # print("custom_widgets_info2", custom_widgets_info2)
         result = cipher_processor.process()
         if isinstance(result, dict):
             import json
