@@ -137,8 +137,9 @@ class CipherProcessor:
     
     def process_caesar(self, message, key, mode):
         try:
-            key = int(key[0])
-            
+            if isinstance(key, list):
+                key = int(key[0])
+            else: key = int(key)
             if not 0 <= key <= 25: return self.__generate_error(-1, "key 必须为0~25之间的整数")
         except: return self.__generate_error(-1, "key 必须为0~25之间的整数")
         if mode=='encrypt':
@@ -148,7 +149,8 @@ class CipherProcessor:
 
     def process_keyword(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
         except: return self.__generate_error(-1, "key 格式错误")
         if mode=='encrypt':
             return danbiao.Danbiao_Cipher().keyword_cipher(message, key)
@@ -171,7 +173,9 @@ class CipherProcessor:
         
     def process_multiliteral(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Multiliteral key 格式错误")
         if mode=='encrypt':
             return danbiao.Danbiao_Cipher().multiliteral_cipher(message, key)
@@ -180,7 +184,9 @@ class CipherProcessor:
     
     def process_vigenere(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Vigenere key 格式错误")
         try:
             if mode=='encrypt':
@@ -192,7 +198,9 @@ class CipherProcessor:
 
     def process_autokey_ciphertext(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Autokey key 格式错误")
         try:
             if mode=='encrypt':
@@ -202,10 +210,11 @@ class CipherProcessor:
         except Exception as e:
             return self.__generate_error(-1, "加密/解密失败，请判断输入是否是字母表")
 
-    # 这个的实现有 bug (只能是字母表)
     def process_autokey_plaintext(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+
         except: return self.__generate_error(-1, "Autokey key 格式错误")
         try:
             if mode=='encrypt':
@@ -217,7 +226,9 @@ class CipherProcessor:
 
     def process_playfair(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Playfair key 格式错误")
         if mode=='encrypt':
             return duotu.Playfair_Cipher().encrypt(message, key)
@@ -226,7 +237,9 @@ class CipherProcessor:
     
     def process_permutation(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Permutation key 格式错误")
         if mode=='encrypt':
             return zhihuan.Zhihuan_Cipher().encrypt_permutation(message, key)
@@ -235,7 +248,9 @@ class CipherProcessor:
 
     def process_column_permutation(self, message, key, mode):
         try:
-            key = key[0].encode()
+            if isinstance(key, list):
+                key = key[0].encode()
+            
         except: return self.__generate_error(-1, "Column Permutation key 格式错误")
         if mode=='encrypt':
             return zhihuan.Zhihuan_Cipher().column_permutation_encrypt(message, key)
@@ -413,6 +428,8 @@ class CipherProcessor:
             elif alogorithm == 'Column permutation': result = self.process_column_permutation(self.message, key, mode)
             elif alogorithm == 'Double-Transposition': result = self.process_double_transposition(self.message, key, mode)
 
+            if isinstance(result, dict) and 'error_code' in result and 'error_message' in result:
+                    return result
             self.message = result
         return self.message, C1
 

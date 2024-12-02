@@ -76,5 +76,5 @@ def send_once(ip, port, msg, algorithm_list):
         return generate_error(-2, str(e))
 
 if __name__ == "__main__":
-    error = send_once('127.0.0.1', 12345, '你好啊'.encode(), ['AES', 'RSA'])
+    error = send_once('127.0.0.1', 12345, '你好啊'.encode(), ['Caesar'])
     print(error)

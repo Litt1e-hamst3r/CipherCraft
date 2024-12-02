@@ -1,6 +1,7 @@
 import random
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QScrollArea, QPushButton, QTextEdit
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal
 import traceback
 from .single_scroll_area_widget import ScrollAreaWidget
 from .single_drop_drag_label import DraggableLabel, DropLabel
@@ -18,13 +19,24 @@ from backend.network import NetworkHandler
 import random
 
 class Window2(QWidget):
+    data_received = pyqtSignal(str)  # 定义一个信号，传递字符串数据
+    data_error = pyqtSignal(dict)    # 定义一个信号，传递错误信息
 
     def __init__(self, switch_window_callback):
         super().__init__()
         self.switch_window = switch_window_callback
         self.initUI()
         self.start_receive_thread('0.0.0.0', random.randrange(4000, 65535))
+        self.data_received.connect(self.handle_data_received)  # 连接信号到槽函数
+        self.data_error.connect(self.handle_data_received)
 
+    def handle_data_received(self, data):
+        if isinstance(data, dict) and 'error_code' in data and 'error_message' in data:
+            self.show_popup_message(f"Error: {data['error_message']}")
+        else:
+            print("Received data:", data)
+            self.add_new_widget2(data, "type2")
+    
     def initUI(self):
         self.setWindowTitle('Integrated Drag and Drop Example')
         self.setFixedSize(1920, 1200)  # 固定窗口大小
@@ -314,15 +326,12 @@ class Window2(QWidget):
             right_input_text = self.get_right_input_text()
             custom_widgets_info = self.get_custom_widgets_info()
             error = send_once(IPinfo, int(PortInfo), right_input_text.encode(), custom_widgets_info)
-            print(error)
-            path_info = self.label.return_file_path()
-            print(path_info)
-            
-            print("自定义控件信息:", custom_widgets_info)
-            print("IP信息:", IPinfo)
-            print("端口信息:", PortInfo)
-            
-            self.add_new_widget2(right_input_text, "type1")
+            if isinstance(error, dict) and 'error_code' in error and 'error_message' in error:
+                self.show_popup_message(f"Error: {error['error_message']}")
+            elif error==None:
+                self.add_new_widget2(right_input_text, "type1")
+            else:
+                self.show_popup_message(f"Error: {error}")
         except Exception as e:
             self.show_popup_message(str(e))
 
@@ -336,8 +345,10 @@ class Window2(QWidget):
             print(f"Server started on {network_handler.host}:{network_handler.port}")
             print(f"Connected to {addr}")
             dec = receive_once(network_handler)
-            self.add_new_widget2(dec.decode(), "type2")
-            print(dec.decode())
+            if isinstance(dec, dict) :
+                self.data_error.emit(dec)
+            else:
+                self.data_received.emit(dec.decode())  # 发射信号，传递解码后的数据
     def start_receive_thread(self, ip, port):
         print("Starting receive thread...")
         print("IP:", ip)

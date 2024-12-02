@@ -134,6 +134,8 @@ def get_key_from_integer(integer_seed, algorithm):
         return get_des_key(seed_str)
     elif algorithm == 'AES':
         return get_aes_key(seed_str)
+    elif algorithm == 'Autokey ciphertext' or algorithm == 'Autokey plaintext':
+        return get_vigenere_key(seed_str)
     else:
         raise ValueError("Unsupported algorithm")
 
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     # 例子
     integer_seed = 129341839790198209880448170773785713142599103022634936945934775490901565370690145092810994072869272349792364594170465485168315524876607395803070975007552090519808993311890345121233469388263452500815923392139119422050690606530221676547867276153629134283662439431229879164876057454261034359432043538478800425695
     algorithms = [
-        'Autokey Ciphertext', 'Autokey Plaintext', 'Playfair', 'Permutation',
+        'Autokey Ciphertext', 'Autokey Plaintext', 'Playfair', 'Permutation','Caesar',
         'Column Permutation', 'Double Transposition', 'RC4', 'CA', 'DES', 'AES'
     ]
 
