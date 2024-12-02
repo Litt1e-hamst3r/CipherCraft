@@ -1,4 +1,3 @@
-import math
 import random
 from .utils import long2bytes, bytes2long
 
@@ -121,6 +120,9 @@ class ECC_Cipher:
         r = random.randrange(self.n)
         C1 = self.G * r
         C2 = public_key * r
+        # message的长度不能大于31字节
+        if len(message) > 31:
+            raise ValueError("Message length cannot exceed 32 bytes")
         message = bytes2long(message)
         encrypted_message = (message + C2.x) % self.p
         encrypted_message = long2bytes(encrypted_message)
@@ -151,7 +153,7 @@ if __name__ == '__main__':
     print(f"Private Key: {ecc_cipher.private_key}")
     print(f"Public Key: ({ecc_cipher.public_key.x}, {ecc_cipher.public_key.y})")
 
-    message = b'123456'
+    message = b'\xFF'*31
     C1, encrypted_message = ecc_cipher.encrypt(message, ecc_cipher.public_key)
     print(f"Encrypted Message: {encrypted_message}")
 

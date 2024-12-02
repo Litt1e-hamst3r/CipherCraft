@@ -1,4 +1,3 @@
-import random
 from .utils import bytes2long , long2bytes, mod_inverse, generate_large_prime
 
 class RSA_Cipher:
@@ -40,6 +39,8 @@ class RSA_Cipher:
 
     def encrypt(self, plaintext, public_key):
         n, e = public_key
+        if len(plaintext) > 250:  # 每次最多加密 250 字节
+            raise ValueError("Plaintext is too long for this key size.")
         plaintext = bytes2long(plaintext)
         ciphertext = self.__fast_exponentiation(plaintext, e, n)
         ciphertext = long2bytes(ciphertext)
@@ -59,10 +60,11 @@ if __name__ == "__main__":
     print(f"Public Key: {public_key}")
     print(f"Private Key: {private_key}")
 
-    plaintext = b'123456789'
+    plaintext = b'fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff111212121212234567890qwertyuio1234512321312367890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio'
     ciphertext = rsa.encrypt(plaintext, public_key)
     decrypted_text = rsa.decrypt(ciphertext, private_key)
 
     print(f"Plaintext: {plaintext}")
     print(f"Ciphertext: {ciphertext}")
     print(f"Decrypted Text: {decrypted_text}")
+    # print(hex(len(b'1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio')))

@@ -1,5 +1,3 @@
-import re
-import numpy as np
 import random
 
 def str2bin(text):

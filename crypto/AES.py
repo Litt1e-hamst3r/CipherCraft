@@ -1,5 +1,3 @@
-import numpy as np
-
 class AES_Cipher:
 
     MIX_C  = [[0x2, 0x3, 0x1, 0x1], [0x1, 0x2, 0x3, 0x1], [0x1, 0x1, 0x2, 0x3], [0x3, 0x1, 0x1, 0x2]]
@@ -131,7 +129,6 @@ class AES_Cipher:
         
 
     def encrypt(self, plaintext):
-        print(len(plaintext))
         # 计算需要填充的字节数
         padding_length = (16 - (len(plaintext) % 16)) % 16
         # 填充到 16 字节的倍数
@@ -167,7 +164,6 @@ class AES_Cipher:
         return decrypted_text    
 
 if __name__ == '__main__':
-
     key = 0x000102030405060708090a0b0c0d0e0f
     key = key.to_bytes(16, byteorder='big')
     aes = AES_Cipher(key)

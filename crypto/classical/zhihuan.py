@@ -21,8 +21,18 @@ class Zhihuan_Cipher:
         padding_char = b'X' if text.isupper() else b'x'
         return text + padding_char * padding_length, padding_length
 
+    def __pad_permute_text(self, text, block_size):
+        padding_length = block_size - (len(text) % block_size)
+        if padding_length == block_size:
+            padding_length = 0
+        padding_char = b' ' if text.isupper() else b' '
+        return text + padding_char * padding_length
+
     def __unpad_text(self, text, original_length):
         return text[:original_length]
+
+    def __unpad_permute_text(self, text):
+        return text.rstrip(b' ')
 
     def __permute_block(self, block, permutation_table):
         # 确保block中的每个元素都是字节类型
@@ -49,16 +59,15 @@ class Zhihuan_Cipher:
         permutation_table = self.__generate_permutation_table(key.decode('ascii'))
         text = self.__prepare_text(text)
         block_size = len(key)
-        padded_text, padding_length = self.__pad_text(text, block_size)
-        return self.__permute(padded_text, permutation_table, block_size), padding_length
+        padded_text = self.__pad_permute_text(text, block_size)
+        return self.__permute(padded_text, permutation_table, block_size)
 
-    def decrypt_permutation(self, ciphertext, key, padding_length):
+    def decrypt_permutation(self, ciphertext, key):
         permutation_table = self.__generate_permutation_table(key.decode('ascii'))
         inverse_table = self.__inverse_permutation_table(permutation_table)
         block_size = len(key)
         decrypted_text = self.__permute(ciphertext, inverse_table, block_size)
-        original_length = len(decrypted_text) - padding_length
-        return self.__unpad_text(decrypted_text, original_length)
+        return self.__unpad_permute_text(decrypted_text)
 
     def __check(self, t):
         for char in t:
@@ -180,13 +189,11 @@ if __name__ == "__main__":
                 action = input("请选择操作（加密1/解密2/返回上一级3）: ")
                 if action.lower() == '1':
                     plaintext = input("请输入明文: ").encode('ascii')
-                    ciphertext, padding_length = cipher_suite.encrypt_permutation(plaintext, key)
+                    ciphertext= cipher_suite.encrypt_permutation(plaintext, key)
                     print(f"加密后的密文: {ciphertext.decode('ascii')}")
-                    print(f"填充长度: {padding_length}")
                 elif action.lower() == '2':
                     ciphertext = input("请输入密文: ").encode('ascii')
-                    padding_length = int(input("请输入填充长度: "))
-                    plaintext = cipher_suite.decrypt_permutation(ciphertext, key, padding_length)
+                    plaintext = cipher_suite.decrypt_permutation(ciphertext, key)
                     print(f"解密后的明文: {plaintext.decode('ascii')}")
                 elif action.lower() == '3':
                     break
