@@ -364,9 +364,8 @@ class CipherProcessor:
             
     # 更加简单的 process 操作
     # 输入的 message 固定为 bytes 类型
-    # json_list 为 ["Caesar", "RSA", "DES"] 的类似格式
+    # json_list 为 ["Caesar", "DES", "RSA"] 的类似格式
     # 按照 mode 进行加密/解密
-    # 对于特殊的 RSA, ECC, 需要传入对应的 key
     def easy_process(self, key_list, mode='encrypt'):
         C1 = ""     # 暂存 C1
 
