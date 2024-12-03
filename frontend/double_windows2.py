@@ -35,6 +35,9 @@ class Window2(QWidget):
         self.data_received.connect(self.handle_data_received)  # 连接信号到槽函数
         self.data_error.connect(self.handle_data_received)
         self.addr_received.connect(self.handle_addr_received)
+        # 设置一些默认值（用户应该按照业务配置）
+        self.ip_edit.setText("127.0.0.1")
+        self.port_edit.setText("12345")
 
     def handle_addr_received(self, addr):
         ip, port = addr
@@ -181,9 +184,7 @@ class Window2(QWidget):
                 'DES',
                 'AES',
                 'RSA',
-                'ECC',
-                'Auto ECC Key',
-                'Auto RSA Key'
+                'ECC'
             ]
         }
 
@@ -324,8 +325,11 @@ class Window2(QWidget):
                 self.logger.error(f"Error: {dec['error_message']}")
                 self.data_error.emit(dec)
             else:
-                self.logger.info(f"Received data: {dec.decode()}")
-                self.data_received.emit(dec.decode())  # 发射信号，传递解码后的数据
+                try:
+                    self.logger.info(f"Received data: {dec.decode()}")
+                    self.data_received.emit(dec.decode())  # 发射信号，传递解码后的数据
+                except: 
+                    self.logger.error(f"Error: {dec}")
             network_handler.close()
     def start_receive_thread(self, ip, port):
         while True:

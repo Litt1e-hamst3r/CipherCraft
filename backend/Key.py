@@ -122,9 +122,9 @@ def get_key_from_integer(integer_seed, algorithm):
         return get_playfair_key(integer_seed)
     elif algorithm == 'Permutation':
         return get_permutation_key(integer_seed)
-    elif algorithm == 'Column Permutation':
+    elif algorithm == 'Column permutation':
         return get_column_permutation_key(integer_seed)
-    elif algorithm == 'Double Transposition':
+    elif algorithm == 'Double-Transposition':
         return get_double_transposition_key(integer_seed)
     elif algorithm == 'RC4':
         return get_rc4_key(seed_str)

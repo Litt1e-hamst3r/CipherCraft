@@ -2,7 +2,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 import sys
 from .single_dropWidget import DropWidget
 from .double_windows2 import Window2
-
+import os
+import PyQt5.QtGui as QtGui
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -12,6 +13,7 @@ class MainWindow(QWidget):
         self.window2 = Window2(self.switch_window)
 
         self.setWindowTitle("CipherCraft: "+str(self.window2.port))
+        self.init_icon()
         # 将两个窗口添加到堆栈窗口
         self.stacked_widget.addWidget(self.window1)
         self.stacked_widget.addWidget(self.window2)
@@ -30,8 +32,21 @@ class MainWindow(QWidget):
     def switch_window(self, index):
         self.stacked_widget.setCurrentIndex(index)
 
+    def init_icon(self):
+        # 设置窗口图标
+        ico_path = os.path.join(os.path.dirname(__file__), './src/cc.ico')
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(ico_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
+        # 设置任务栏图标
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("CipherCraft")
+
+
 def run():
+    
     app = QApplication(sys.argv)
+    
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec_())

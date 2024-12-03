@@ -7,6 +7,7 @@ from .single_draggable_widget import DraggableWidget
 from .single_custom_widgets import *
 import os
 import sys
+import json
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 将项目根目录添加到 sys.path
 sys.path.append(project_root)
@@ -368,9 +369,11 @@ class DropWidget(QWidget):
         # print("custom_widgets_info2", custom_widgets_info2)
         result = cipher_processor.process()
         if isinstance(result, dict):
-            import json
             result = json.dumps(result, ensure_ascii=False)
             self.logger.warning(f"{result}")
+        elif isinstance(result, tuple):
+            result = json.dumps(result, ensure_ascii=False)
+            self.logger.info(f"{result}")
         else:
             self.logger.info(f"result: {result}")
         self.text_edit_output.setPlainText(result)
