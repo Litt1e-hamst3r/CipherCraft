@@ -103,16 +103,16 @@ class DraggableWidget(QFrame):
             if event.button() == Qt.LeftButton and self.is_dragging:
                 self.is_dragging = False
                 release_pos = event.globalPos()
-                print(f"Mouse released at global position: {release_pos}")
+                # print(f"Mouse released at global position: {release_pos}")
                 local_release_pos = self.mapFromGlobal(release_pos)
-                print(f"Mouse released at local position: {local_release_pos}")
+                # print(f"Mouse released at local position: {local_release_pos}")
 
                 if self.should_delete:
                     if self.scroll_area and self.scroll_area.widget():
                         scroll_widget = self.scroll_area.widget()
                         if hasattr(scroll_widget, 'remove_widget'):
                             scroll_widget.remove_widget(self)
-                    print(f"Widget {self.label.text()} deleted")
+                    # print(f"Widget {self.label.text()} deleted")
                 else:
                     self.rearrange_all_widgets()
 

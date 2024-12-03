@@ -42,10 +42,12 @@ def receive_ECC_public_key(network_handler):
 def generate_error(error_code, error_message):
     return {"error_code": error_code, "error_message": error_message}
 
-def send_once(ip, port, msg, algorithm_list):
+def send_once(self_port, ip, port, msg, algorithm_list):
     try:
         network_handler = NetworkHandler()
         network_handler.connect(ip, port)
+        # self_port
+        network_handler.send_json({'port': self_port})
         # DH
         shared_secret = get_DHkey_C(network_handler)
         # 发送 algorithm_list
@@ -63,7 +65,6 @@ def send_once(ip, port, msg, algorithm_list):
                 key_list.append(rsa_public_key)
             else: 
                 key_list.append(get_key_from_integer(shared_secret, algorithm))
-        print(key_list)
         cipherProcess = CipherProcessor(message=msg, json_list=algorithm_list)
         data, C1 = cipherProcess.easy_process(key_list, 'encrypt')
         # 先发送 C1

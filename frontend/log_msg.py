@@ -11,7 +11,7 @@ def setup_logger(name):
 
     # 创建一个handler用于写入日志文件
     now = datetime.now()
-    log_filename = f"./log/app_{now.strftime('%Y%m%d_%H%M%S')}.log"
+    log_filename = f"./log/{name}_{now.strftime('%Y%m%d_%H%M%S')}.log"
     
     # 确保日志目录存在
     log_dir = os.path.dirname(log_filename)
@@ -38,7 +38,7 @@ def setup_logger(name):
 
 if __name__ == "__main__":
         # 获取logger实例
-    logger = setup_logger("test_logger")
+    logger = setup_logger("double_windows")
 
     # 记录一条debug级别的日志
     logger.debug("This is a debug message")

@@ -51,6 +51,10 @@ def generate_error(error_code, error_message):
 
 def receive_once(network_handler):
     try:
+        # self_port
+        target_port = network_handler.receive_json()
+        target_port = target_port['port']
+
         # DH
         shared_secret = get_DHkey_S(network_handler)
         # 接受 algorithm_list
@@ -76,7 +80,7 @@ def receive_once(network_handler):
         cipherProcess = CipherProcessor(message=enc_data, json_list=algorithm_list) # json_list 的顺序要和加密时的顺序相反
         dec, _ = cipherProcess.easy_process(key_list, 'decrypt')
         
-        return dec
+        return target_port, dec
     except Exception as e:
         return generate_error(-2, str(e))
 

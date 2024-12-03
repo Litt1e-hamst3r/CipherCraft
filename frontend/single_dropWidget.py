@@ -11,6 +11,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 将项目根目录添加到 sys.path
 sys.path.append(project_root)
 from backend.CipherProcessor import CipherProcessor
+from .log_msg import setup_logger
 
 class DropWidget(QWidget):
     
@@ -18,10 +19,11 @@ class DropWidget(QWidget):
         super().__init__()
         self.switch_window = switch_window_callback
         self.initUI()
+        self.logger = setup_logger("single_window")
         # self.file_path = None  # 用于存储文件路径
 
     def initUI(self):
-        self.setWindowTitle('Integrated Drag and Drop Example')
+        # self.setWindowTitle('Integrated Drag and Drop Example')
         self.setFixedSize(1920, 1200)  # 固定窗口大小
 
         main_layout = QHBoxLayout()
@@ -221,18 +223,6 @@ class DropWidget(QWidget):
         # 在中间布局的新QLabel中显示拖放相关信息
         self.drop_info_label.setText(f"Selected Mode: {text}")
 
-    def resizeEvent(self, event):  # 更新 QScrollArea 的宽度
-        try:
-            total_width = self.width()
-            left_width = self.layout().itemAt(0).geometry().width()
-            right_width = self.layout().itemAt(2).geometry().width()
-            middle_width = (total_width - left_width - right_width) * 3 / 8  # 伸缩因子为3
-            self.scroll_area.setFixedWidth(middle_width)
-            self.scroll_widget.update_child_widths()  # 更新子控件宽度
-        except Exception as e:
-            print(f"Error in resizeEvent: {e}")
-            traceback.print_exc()
-
     def read_file_hex(self, file_path):
         try:
             with open(file_path, 'rb') as file:
@@ -373,11 +363,14 @@ class DropWidget(QWidget):
         # print("Submit button clicked2")
         # print("自定义控件信息:", custom_widgets_info2)
         # print("右侧用户输入内容:", right_input_text)
+        self.logger.info(f"{right_input_text}")
         cipher_processor = CipherProcessor(right_input_text, custom_widgets_info2)
         # print("custom_widgets_info2", custom_widgets_info2)
         result = cipher_processor.process()
         if isinstance(result, dict):
             import json
             result = json.dumps(result, ensure_ascii=False)
+            self.logger.warning(f"{result}")
+        else:
+            self.logger.info(f"result: {result}")
         self.text_edit_output.setPlainText(result)
-    

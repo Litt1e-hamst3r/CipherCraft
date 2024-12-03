@@ -10,25 +10,36 @@ from .double_history_widget import CustomHistoryWidget
 import os
 import sys
 import threading 
+
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 将项目根目录添加到 sys.path
 sys.path.append(project_root)
 from backend.client import send_once
 from backend.server import receive_once
 from backend.network import NetworkHandler
+from .log_msg import setup_logger
 import random
 
 class Window2(QWidget):
     data_received = pyqtSignal(str)  # 定义一个信号，传递字符串数据
     data_error = pyqtSignal(dict)    # 定义一个信号，传递错误信息
+    addr_received = pyqtSignal(tuple)
 
     def __init__(self, switch_window_callback):
         super().__init__()
+        self.logger = setup_logger("double_windows")
         self.switch_window = switch_window_callback
         self.initUI()
-        self.start_receive_thread('0.0.0.0', random.randrange(4000, 65535))
+        self.port = 12345
+        self.start_receive_thread('0.0.0.0', self.port)
         self.data_received.connect(self.handle_data_received)  # 连接信号到槽函数
         self.data_error.connect(self.handle_data_received)
+        self.addr_received.connect(self.handle_addr_received)
+
+    def handle_addr_received(self, addr):
+        ip, port = addr
+        self.ip_edit.setText(ip)
+        self.port_edit.setText(str(port))
 
     def handle_data_received(self, data):
         if isinstance(data, dict) and 'error_code' in data and 'error_message' in data:
@@ -76,8 +87,7 @@ class Window2(QWidget):
         left_layout.addWidget(self.search_input)
 
         self.scroll_areas = {
-            'Encryption': self.create_scroll_area(),
-            'Conversion': self.create_scroll_area()
+            'Encryption': self.create_scroll_area()
         }
 
         for category, (scroll_area, _, _) in self.scroll_areas.items():
@@ -105,11 +115,6 @@ class Window2(QWidget):
         ip_port_layout.addWidget(self.ip_edit)
         ip_port_layout.addWidget(port_label)
         ip_port_layout.addWidget(self.port_edit)
-
-        # 添加测试按钮
-        self.test_button = QPushButton("测试", self)
-        self.test_button.clicked.connect(self.test_button_clicked)
-        ip_port_layout.addWidget(self.test_button)
 
         middle_layout.addLayout(ip_port_layout)
         middle_layout.addWidget(self.scroll_area)
@@ -179,40 +184,14 @@ class Window2(QWidget):
                 'ECC',
                 'Auto ECC Key',
                 'Auto RSA Key'
-            ],
-            'Conversion': [
-                'From Base64',
-                'To Base64',
-                'To Hex',
-                'From Hex',
-                'MD5 Hashing'
             ]
         }
 
         self.update_search_results()
-    def test_button_clicked(self):
-        # TODO  这里模拟一个测试返回结果，实际中你需要替换为真实的测试逻辑获取这个值
-        random_number = random.randint(1,100)
-        # if random_number > 50:
-        #     test_result = True
-        # else:
-        #     test_result = False
-        if random_number > 50:
-            self.test_button.setStyleSheet("background-color: lightgreen;")
-        else:
-            self.test_button.setStyleSheet("background-color: red;")
 
     def on_left_label_click(self, event):
         print("Left label clicked!")
         self.switch_window(0)
-        
-    # def on_left_label_movein(self):
-    #         self.right_label.setStyleSheet("""
-    #         background-color: blue;
-    #         padding: 20px;
-
-    #     """)
-
 
     def create_scroll_area(self):
         scroll_area = QScrollArea()
@@ -249,18 +228,6 @@ class Window2(QWidget):
             text = event.mimeData().text()
             self.add_new_widget(text)
             event.acceptProposedAction()
-
-    def resizeEvent(self, event):
-        try:
-            total_width = self.width()
-            left_width = self.layout().itemAt(0).geometry().width()
-            right_width = self.layout().itemAt(2).geometry().width()
-            middle_width = (total_width - left_width - right_width) * 3 / 8
-            self.scroll_area.setFixedWidth(middle_width)
-            self.scroll_widget.update_child_widths()
-        except Exception as e:
-            print(f"Error in resizeEvent: {e}")
-            traceback.print_exc()
 
     def read_file_hex(self, file_path):
         try:
@@ -325,14 +292,19 @@ class Window2(QWidget):
             PortInfo = self.port_edit.text()
             right_input_text = self.get_right_input_text()
             custom_widgets_info = self.get_custom_widgets_info()
-            error = send_once(IPinfo, int(PortInfo), right_input_text.encode(), custom_widgets_info)
+            self.logger.info(f"Sending to {IPinfo}:{PortInfo}, alogorithm: {custom_widgets_info}")
+            error = send_once(self.port, IPinfo, int(PortInfo), right_input_text.encode(), custom_widgets_info)
             if isinstance(error, dict) and 'error_code' in error and 'error_message' in error:
+                self.logger.warning(f"Error: {error['error_message']}")
                 self.show_popup_message(f"Error: {error['error_message']}")
             elif error==None:
+                self.logger.info(f"Send success: {right_input_text}")
                 self.add_new_widget2(right_input_text, "type1")
             else:
+                self.logger.error(f"Error: {error}")
                 self.show_popup_message(f"Error: {error}")
         except Exception as e:
+            self.logger.error(str(e))
             self.show_popup_message(str(e))
 
     def receive_thread(self, ip, port):
@@ -342,17 +314,31 @@ class Window2(QWidget):
             network_handler.socket.listen(1)
             client_socket, addr = network_handler.socket.accept()
             network_handler.socket = client_socket
-            print(f"Server started on {network_handler.host}:{network_handler.port}")
-            print(f"Connected to {addr}")
-            dec = receive_once(network_handler)
+            # print(f"Server started on {network_handler.host}:{network_handler.port}")
+            # print(f"Connected to {addr}")
+            ip, _ = addr
+            target_port, dec = receive_once(network_handler)
+            self.addr_received.emit((ip, target_port))
+            self.logger.info(f"Connected to {addr}, Target addr: {ip}:{target_port}")
             if isinstance(dec, dict) :
+                self.logger.error(f"Error: {dec['error_message']}")
                 self.data_error.emit(dec)
             else:
+                self.logger.info(f"Received data: {dec.decode()}")
                 self.data_received.emit(dec.decode())  # 发射信号，传递解码后的数据
+            network_handler.close()
     def start_receive_thread(self, ip, port):
-        print("Starting receive thread...")
-        print("IP:", ip)
-        print("Port:", port)
+        while True:
+            try:
+                network_handler = NetworkHandler(ip, port)
+                network_handler.socket.listen(1)
+                network_handler.close()
+                break
+            except Exception:
+                port += 1
+                print(f"更新 port 为 {port}")
+        self.port = port
+        self.logger.info(f"Server started on {network_handler.host}:{network_handler.port}, receive thread started on port {port}")
         # 创建线程对象并传递 self 作为参数
         thread = threading.Thread(target=self.receive_thread, args=(ip, port))
         # 设置线程为守护线程

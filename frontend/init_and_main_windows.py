@@ -10,6 +10,8 @@ class MainWindow(QWidget):
         
         self.window1 = DropWidget(self.switch_window)
         self.window2 = Window2(self.switch_window)
+
+        self.setWindowTitle("CipherCraft: "+str(self.window2.port))
         # 将两个窗口添加到堆栈窗口
         self.stacked_widget.addWidget(self.window1)
         self.stacked_widget.addWidget(self.window2)
@@ -22,6 +24,8 @@ class MainWindow(QWidget):
         self.setLayout(layout)
         
         self.setFixedSize(1920, 1200)  # 设置固定大小为1920x1200像素
+
+        # self.setWindowTitle('端口号是这个：')
 
     def switch_window(self, index):
         self.stacked_widget.setCurrentIndex(index)

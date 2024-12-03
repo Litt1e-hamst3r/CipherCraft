@@ -1,6 +1,36 @@
-from PyQt5.QtWidgets import QSizePolicy,QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QDateTimeEdit, QMessageBox, QDialog, QTextEdit
+from PyQt5.QtWidgets import QSizePolicy, QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QDateTimeEdit, QMessageBox, QDialog, QTextEdit, QFileDialog
 from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QColor
+
+# 定义文件类型的字典
+FILE_TYPES = {
+    b'\xFF\xD8\xFF': '.jpg',  # JPEG
+    b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A': '.png',  # PNG
+    b'\x47\x49\x46\x38\x39\x61': '.gif',  # GIF
+    b'\x42\x4D': '.bmp',  # BMP
+    b'\x49\x49\x2A\x00': '.tiff',  # TIFF (Intel byte order)
+    b'\x4D\x4D\x00\x2A': '.tiff',  # TIFF (Motorola byte order)
+    b'\x50\x4B\x03\x04': '.zip',  # ZIP
+    b'\x52\x61\x72\x21\x1A\x07\x00': '.rar',  # RAR
+    b'\x1F\x8B\x08': '.gz',  # GZIP
+    b'\x4D\x5A': '.exe',  # EXE
+    b'\x7F\x45\x4C\x46': '.elf',  # ELF
+    b'\x50\x4B\x05\x06': '.zip',  # ZIP (central directory end)
+    b'\x50\x4B\x07\x08': '.zip',  # ZIP (data descriptor)
+    b'\x52\x61\x72\x21\x1A\x07\x01\x00': '.rar',  # RAR 5
+    b'\x25\x50\x44\x46\x2D\x31': '.pdf',  # PDF
+    b'\x52\x69\x66\x46': '.wav',  # WAV
+    b'\x4F\x67\x67\x53': '.ogg',  # OGG
+    b'\x46\x4C\x41\x43': '.flac',  # FLAC
+    b'\x41\x52\x43\x48': '.arj',  # ARJ
+
+}
+
+def detect_file_type(hex_data):
+    for magic_number, extension in FILE_TYPES.items():
+        if hex_data.startswith(magic_number):
+            return extension
+    return None
 
 class CustomHistoryWidget(QWidget):
     def __init__(self, text, widget_type):
@@ -21,7 +51,7 @@ class CustomHistoryWidget(QWidget):
 
         # 显示前100个字节内容的标签，设置为可点击并关联点击事件
         truncated_text = self.text[:50] if len(self.text) > 50 else self.text
-        self.text_label = QLabel(truncated_text+"...")
+        self.text_label = QLabel(truncated_text + "...")
         self.text_label.setCursor(Qt.PointingHandCursor)  # 设置鼠标指针样式为手型，表示可点击
         self.text_label.mousePressEvent = self.show_full_text  # 绑定点击事件到显示全部内容的方法
         self.text_label.setStyleSheet("border: 0; padding: 5px;")  # 去掉边框并添加内边距
@@ -122,12 +152,44 @@ class CustomHistoryWidget(QWidget):
         text_edit.setReadOnly(True)  # 设置为只读
         text_edit.setStyleSheet("background-color: white; color: black; border: 1px solid #ccc; padding: 5px;")  # 设置 QTextEdit 背景颜色为白色，文字颜色为黑色，并添加边框和内边距
 
-        # 创建布局并将 QTextEdit 添加到对话框中
+        # 创建一个按钮来保存文本
+        save_button = QPushButton("保存为二进制文件")
+        save_button.clicked.connect(lambda: self.save_text_as_binary_file(text_edit.toPlainText()))
+
+        # 创建布局并将 QTextEdit 和按钮添加到对话框中
         layout = QVBoxLayout(dialog)
         layout.addWidget(text_edit)
+        layout.addWidget(save_button)
 
         # 显示对话框
         dialog.exec_()
+
+    def save_text_as_binary_file(self, text):
+        try:
+            # 将16进制文本转换为字节
+            hex_text = text.strip()
+            byte_array = bytes.fromhex(hex_text)
+
+            # 检测文件类型并添加相应的扩展名
+            file_extension = detect_file_type(byte_array)
+            default_file_name = "untitled"
+            if file_extension:
+                default_file_name += file_extension
+
+            # 弹出文件保存对话框
+            file_name, _ = QFileDialog.getSaveFileName(self, "保存文件", default_file_name, "All Files (*)")
+
+            if file_name:
+                # 如果用户没有输入扩展名且检测到了扩展名，则添加扩展名
+                if file_extension and not file_name.endswith(file_extension):
+                    file_name += file_extension
+
+                # 保存到文件
+                with open(file_name, 'wb') as file:
+                    file.write(byte_array)
+                QMessageBox.information(self, "保存成功", f"文件已保存到 {file_name}")
+        except Exception as e:
+            QMessageBox.critical(self, "保存失败", f"保存文件时出错: {str(e)}")
 
     def delete_widget(self):
         # 获取父布局，从父布局中移除自身
