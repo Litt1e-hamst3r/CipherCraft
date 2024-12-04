@@ -4,6 +4,10 @@ from .single_dropWidget import DropWidget
 from .double_windows2 import Window2
 import os
 import PyQt5.QtGui as QtGui
+# 获取项目根目录的绝对路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 将项目根目录添加到 sys.path
+sys.path.append(project_root)
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -35,7 +39,7 @@ class MainWindow(QWidget):
 
     def init_icon(self):
         # 设置窗口图标
-        ico_path = os.path.join(os.path.dirname(__file__), './src/cc.ico')
+        ico_path = os.path.join(project_root, 'frontend', 'src', 'cc.ico')
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(ico_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(icon)
@@ -43,19 +47,15 @@ class MainWindow(QWidget):
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("CipherCraft")
 def run():
-    
     app = QApplication(sys.argv)
-    qss_file = os.path.join(os.path.dirname(__file__), './src/style.qss')
-    qss_style = open(qss_file, 'r', encoding='utf-8').read()
+    # 加载样式表
+    qss_file_path = os.path.join(project_root, 'frontend', 'src', 'style.qss')
+    qss_style = open(qss_file_path, 'r', encoding='utf-8').read()
     app.setStyleSheet(qss_style) 
-    # apply_stylesheet(app, theme='dark_teal.xml')
+    # 创建主窗口
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
     run()
-    # app = QApplication(sys.argv)
-    # main_window = MainWindow()
-    # main_window.show()
-    # sys.exit(app.exec_())
