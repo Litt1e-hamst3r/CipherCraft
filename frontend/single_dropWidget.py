@@ -44,10 +44,7 @@ class DropWidget(QWidget):
         #button = QPushButton('Click Me', self)
                 # 创建一个 QLabel
         right_button = QPushButton('Change Mode', self)
-        right_button.setStyleSheet("""
-            padding: 20px;
-
-        """)
+        right_button.setStyleSheet("""padding: 20px;""")
         right_button.clicked.connect(lambda: self.switch_window(1))
         # right_label = QLabel('Change Mode', self)
         # right_label.setStyleSheet("background-color: lightblue; padding: 20px;")

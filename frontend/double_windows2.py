@@ -298,9 +298,10 @@ class Window2(QWidget):
             if isinstance(error, dict) and 'error_code' in error and 'error_message' in error:
                 self.logger.warning(f"Error: {error['error_message']}")
                 self.show_popup_message(f"Error: {error['error_message']}")
-            elif error==None:
-                self.logger.info(f"Send success: {right_input_text}")
+            elif isinstance(error, bytes) or isinstance(error, bytearray):
+                self.logger.info(f"Send success: {right_input_text}, encrypted: {error}")
                 self.add_new_widget2(right_input_text, "type1")
+                self.text_edit_output.setPlainText(str(error))
             else:
                 self.logger.error(f"Error: {error}")
                 self.show_popup_message(f"Error: {error}")

@@ -2,7 +2,7 @@ import socket
 import json
 import sys
 
-def send_json_to_server(data, host='127.0.0.1', port=6666):
+def send_json_to_server(data, host='0.0.0.0', port=6666):
     # 创建一个TCP/IP套接字
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     

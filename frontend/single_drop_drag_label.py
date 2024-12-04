@@ -8,7 +8,7 @@ class DropLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet("border: 2px dashed black; font-size: 10pt; padding: 20px; background-color: lightgreen;")
+        self.setStyleSheet("border: 2px dashed black; padding: 20px; background-color: lightgreen;")
         self.setText("Drag and Drop File Here")
         self.setAcceptDrops(True)
         self.file_path = None

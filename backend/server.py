@@ -73,6 +73,7 @@ def receive_once(network_handler):
             else: 
                 key_list.append(get_key_from_integer(shared_secret, algorithm))
 
+        print("key_list", key_list)
         # 逆向密钥
         algorithm_list.reverse()
         key_list.reverse()

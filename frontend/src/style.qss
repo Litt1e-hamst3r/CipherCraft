@@ -1,0 +1,172 @@
+/* style.qss */
+
+/* 基本标签样式 */
+QLabel {
+    color: #333; /* 文字颜色 */
+    font-size: 18px; /* 字体大小 */
+    font-weight: bold;  /* 字体粗细 */
+    background-color: lightblue; /* 背景颜色 */
+    padding: 5px; /* 内边距 */
+    border: 1px solid #ccc; /* 边框 */
+    border-radius: 5px; /* 圆角边框 */
+}
+
+/* 当鼠标悬停时的样式 */
+QLabel:hover {
+    color: red;
+}
+
+/* 滚动条的整体宽度 */
+QScrollBar:vertical {
+    border: none;
+    background: rgba(0, 0, 0, 0); /* 透明背景 */
+    width: 12px; /* 宽度 */
+    margin: 0px 0 0 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #888; /* 滑块的颜色 */
+    min-height: 20px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #aaa; /* 鼠标悬停时滑块的颜色 */
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: #ccc; /* 按下时滑块的颜色 */
+}
+
+QScrollBar::add-line:vertical {
+    height: 0px; /* 去除上下箭头 */
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    height: 0px; /* 去除上下箭头 */
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none; /* 背景透明 */
+}
+
+/* 水平滚动条 */
+QScrollBar:horizontal {
+    border: none;
+    background: rgba(0, 0, 0, 0);
+    height: 12px;
+    margin: 0px 0 0 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #888;
+    min-width: 20px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #aaa;
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background: #ccc;
+}
+
+QScrollBar::add-line:horizontal {
+    width: 0px; /* 去除左右箭头 */
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    width: 0px; /* 去除左右箭头 */
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+/* 基本按钮样式 */
+QPushButton {
+    color: black; /* 文字颜色 */
+    border: 2px solid #000000; /* 边框 */
+    border-radius: 5px; /* 圆角 */
+    padding: 5px 15px; /* 内边距 */
+    font-size: 20px;    /* 字体大小 */
+    font-weight: bold; /* 加粗 */
+}
+
+/* 按钮悬停时的样式 */
+QPushButton:hover {
+    border: 2px solid #007BFF;
+}
+
+/* 基本 QTextEdit 样式 */
+QTextEdit {
+    border: 2px solid #cccccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 21px;
+    background-color: #ffffff;
+    color: #333333;
+}
+
+/* QTextEdit 悬停时的样式 */
+QTextEdit:hover {
+    border: 2px solid #aaaaaa;
+}
+
+/* QTextEdit 获得焦点时的样式 */
+QTextEdit:focus {
+    border: 2px solid #007BFF;
+    background-color: #f0f8ff;
+}
+
+/* 基本 QLineEdit 样式 */
+QLineEdit {
+    border: 2px solid #cccccc; /* 边框颜色 */
+    border-radius: 5px; /* 圆角 */
+    padding: 5px; /* 内边距 */
+    font-size: 20px; /* 字体大小 */
+    background-color: #ffffff; /* 背景颜色 */
+    color: #333333; /* 文字颜色 */
+}
+
+/* QLineEdit 悬停时的样式 */
+QLineEdit:hover {
+    border: 2px solid #aaaaaa;
+}
+
+/* QLineEdit 获得焦点时的样式 */
+QLineEdit:focus {
+    border: 2px solid #007BFF; /* 更深的颜色 */
+    background-color: #f0f8ff; /* 稍微改变背景色 */
+}
+
+/* 基本 QComboBox 样式 */
+QComboBox {
+    border: 2px solid #cccccc; /* 边框颜色 */
+    border-radius: 5px; /* 圆角 */
+    padding: 5px; /* 内边距 */
+    font-size: 18px; /* 字体大小 */
+    background-color: #ffffff; /* 背景颜色 */
+    color: #333333; /* 文字颜色 */
+}
+
+/* 下拉按钮样式 */
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #cccccc;
+    border-left-style: solid;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}

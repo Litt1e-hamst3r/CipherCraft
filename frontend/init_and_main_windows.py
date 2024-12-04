@@ -4,6 +4,7 @@ from .single_dropWidget import DropWidget
 from .double_windows2 import Window2
 import os
 import PyQt5.QtGui as QtGui
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -41,12 +42,13 @@ class MainWindow(QWidget):
         # 设置任务栏图标
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("CipherCraft")
-
-
 def run():
     
     app = QApplication(sys.argv)
-    
+    qss_file = os.path.join(os.path.dirname(__file__), './src/style.qss')
+    qss_style = open(qss_file, 'r', encoding='utf-8').read()
+    app.setStyleSheet(qss_style) 
+    # apply_stylesheet(app, theme='dark_teal.xml')
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec_())

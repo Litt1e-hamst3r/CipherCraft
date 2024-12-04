@@ -65,6 +65,7 @@ def send_once(self_port, ip, port, msg, algorithm_list):
                 key_list.append(rsa_public_key)
             else: 
                 key_list.append(get_key_from_integer(shared_secret, algorithm))
+        print("key_list", key_list)
         cipherProcess = CipherProcessor(message=msg, json_list=algorithm_list)
         data, C1 = cipherProcess.easy_process(key_list, 'encrypt')
         # 先发送 C1
@@ -73,6 +74,7 @@ def send_once(self_port, ip, port, msg, algorithm_list):
         network_handler.send_bytes(data)
         # print(data)
         network_handler.close()
+        return data
     except Exception as e:
         return generate_error(-2, str(e))
 
