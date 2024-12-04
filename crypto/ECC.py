@@ -22,6 +22,13 @@ def mod_inverse(a, m):
 
 class Point:
     def __init__(self, x, y, infinity=False, a=None, p=None):
+        """ 参数:
+        - x: 点的x坐标
+        - y: 点的y坐标
+        - infinity: 是否代表无穷远点，默认为False
+        - a: 椭圆曲线参数a，默认为None
+        - p: 椭圆曲线所在的有限域的特征，默认为None
+        """
         self.x = x
         self.y = y
         self.infinity = infinity
@@ -36,38 +43,76 @@ class Point:
         return self.x == other.x and self.y == other.y
 
     def __neg__(self):
+        """ 用于计算点的逆元(即对称的点) """
         return Point(self.x, -self.y % self.p, a=self.a, p=self.p)
 
     def __add__(self, other):
+        """
+        定义椭圆曲线上两点的加法运算。
+        - 返回一个新点，该点是self和other在椭圆曲线上的加法结果。
+        """
+        # 如果当前点是无穷远点，则返回其他点。
         if self.infinity:
             return other
+        # 如果其他点是无穷远点，则返回当前点。
         if other.infinity:
             return self
+        # 如果当前点和其他点相同，则执行点的倍乘操作。
         if self == other:
             return self.double()
+        # 如果当前点和其他点的x坐标相同，说明它们在垂直于x轴的直线上，结果为无穷远点。
         if self.x == other.x:
             return Point(None, None, True, a=self.a, p=self.p)
         
+        # 计算两点连线的斜率m。
         m = (other.y - self.y) * mod_inverse(other.x - self.x, self.p)
+        # 根据斜率m计算结果点的x坐标。
         x_r = (m**2 - self.x - other.x) % self.p
+        # 根据斜率m和x坐标计算结果点的y坐标。
         y_r = (m * (self.x - x_r) - self.y) % self.p
+        # 返回结果点。
         return Point(x_r, y_r, a=self.a, p=self.p)
+    
     def double(self):
+        """
+        实现椭圆曲线上的点倍乘操作。
+        返回：一个新的Point实例，表示当前点的两倍点。
+        """
+        # 当前点为无穷远点时，返回一个新的无穷远点
         if self.y == 0:
             return Point(None, None, True, a=self.a, p=self.p)
+        
+        # 计算切线的斜率m
         m = (3 * self.x**2 + self.a) * mod_inverse(2 * self.y, self.p)
+        
+        # 计算倍乘结果点的x坐标和y坐标
         x_r = (m**2 - 2 * self.x) % self.p
         y_r = (m * (self.x - x_r) - self.y) % self.p
+        
+        # 返回新的Point实例，表示当前点的两倍点
         return Point(x_r, y_r, a=self.a, p=self.p)
 
     def __mul__(self, k):
+        """
+        实现点的标量乘法操作，即计算椭圆曲线上的一个点与一个整数的乘积。
+        结果是一个新的点，表示原始点与整数k的乘积。
+        """
+        # 初始化结果为无穷远点，为后续的点加法做准备
         result = Point(None, None, True, a=self.a, p=self.p)
+        # 设置加数为当前点，用于在循环中进行点的倍乘操作
         addend = self
+        
+        # 当k不为0时，执行循环
         while k:
+            # 如果k的最低位为1，将当前加数加入到结果中
             if k & 1:
                 result += addend
+            # 对加数进行倍乘操作，即计算当前点的两倍点
             addend = addend.double()
+            # 右移k的二进制表示，为下一轮循环做准备
             k >>= 1
+        
+        # 返回最终的乘法结果点
         return result
 
     def __str__(self):
@@ -110,11 +155,7 @@ class ECC_Cipher:
 
     def encrypt(self, message, public_key):
         """
-        使用ElGamal加密算法对消息进行加密。
-
-        :param message: 需要加密的消息，通常为一个整数。
-        :param public_key: 发送者的公钥，用于加密消息。
-        :return: 返回一个元组，包含两个元素，第一个是加密密钥C1，第二个是加密后的消息。
+        使用 ElGamal 加密算法对消息进行加密。
         选择随机数r，将明文M生产密文C。密文是一个点对，C=(rP,M+rQ)
         """
         r = random.randrange(self.n)
@@ -124,6 +165,7 @@ class ECC_Cipher:
         if len(message) > 31:
             raise ValueError("Message length cannot exceed 32 bytes")
         message = bytes2long(message)
+        # 通过计算(加密消息 + public_key * r)模p来获取原始消息
         encrypted_message = (message + C2.x) % self.p
         encrypted_message = long2bytes(encrypted_message)
         return C1, encrypted_message
@@ -131,17 +173,11 @@ class ECC_Cipher:
     def decrypt(self, C1, encrypted_message, private_key):
         """
         解密函数，用于将加密消息解密为原始消息。
-        参数:
-        - C1: 加密过程中使用的椭圆曲线点。
-        - encrypted_message: 加密后的消息。
-        - private_key: 解密所用的私钥。
-        返回值:
-        - message: 解密后的原始消息。
         encrypted_message-C1*private_key = M+rQ-k(rP)=M+r(kP)-K(rP)=M
         """
         C2 = C1 * private_key
         encrypted_message = bytes2long(encrypted_message)
-        # 通过计算(加密消息 - C2的x坐标)模p来获取原始消息，这里p是椭圆曲线上的一个大素数
+        # 通过计算(加密消息 - C1*private_key)模p 来获取原始消息
         message = (encrypted_message - C2.x) % self.p
         message = long2bytes(message)
         return message

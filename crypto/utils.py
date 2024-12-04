@@ -31,18 +31,14 @@ def bin2bytes(bin_str):
     return bytes(byte_list)
 
 def long2bytes(n, byteorder='big'):
-    """
-    将长整数转换为字节字符串。
-    """
+    """将长整数转换为字节字符串。"""
     # 计算所需的字节数
     length = (n.bit_length() + 7) // 8
     # 使用 int.to_bytes 方法进行转换
     return n.to_bytes(length, byteorder)
 
 def bytes2long(byte_string, byteorder='big'):
-    """
-    将字节字符串转换为长整数。
-    """
+    """将字节字符串转换为长整数。"""
     return int.from_bytes(byte_string, byteorder)
 
 def mod_inverse(a, m):

@@ -5,6 +5,7 @@ class RC4_Cipher:
         self.key = key
 
     def KSA(self, key):
+        """ 利用Key生成S盒 (KSA) """
         S = np.arange(256, dtype=np.uint8)
         j = 0
         for i in range(256):
@@ -13,6 +14,7 @@ class RC4_Cipher:
         return S
 
     def PRGA(self, S):
+        """ 利用S盒生成密钥流 (PRGA) """
         i, j = 0, 0
         while True:
             i = (i + 1) % 256
@@ -22,12 +24,14 @@ class RC4_Cipher:
             yield K
 
     def encrypt(self, text):
+        """ 加密就是密文和密钥流异或 """
         self.S = self.KSA(self.key)
         keystream = self.PRGA(self.S)
         res = np.fromiter((char ^ next(keystream) for char in text), dtype=np.uint8)
         return res.tobytes()
 
     def decrypt(self, ciphertext):
+        """ 加密一样 """
         return self.encrypt(ciphertext)
 
 if __name__ == "__main__":

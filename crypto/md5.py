@@ -2,6 +2,11 @@ import math
 
 class md5_Cipher:
     def __init__(self):
+        """
+        A、B、C、D四个初始状态变量
+        R列表存储了每轮操作的旋转位数
+        K列表存储了每轮操作的常量值
+        """
         self.A = 0x67452301
         self.B = 0xefcdab89
         self.C = 0x98badcfe
@@ -13,14 +18,18 @@ class md5_Cipher:
     def G(self, x, y, z): return (x & z) | (y & ~z)
     def H(self, x, y, z): return x ^ y ^ z
     def I(self, x, y, z): return y ^ (x | ~z)
+
+    # 循环左移函数
     def L(self, x, n): return ((x << n) | (x >> (32 - n))) & 0xFFFFFFFF
     
+    # 重置状态变量
     def __reset(self):
         self.A = 0x67452301
         self.B = 0xefcdab89
         self.C = 0x98badcfe
         self.D = 0x10325476
 
+    # 填充消息并分块
     def __pad_message(self, msg):
         msg = bytearray(msg)
         length = len(msg) * 8
@@ -35,6 +44,7 @@ class md5_Cipher:
 
         return msg
 
+    # 处理一个64字节大小的块
     def __process_chunk(self, chunk):
         a, b, c, d = self.A, self.B, self.C, self.D
         for i in range(64):
@@ -59,9 +69,11 @@ class md5_Cipher:
         self.C = (self.C + c) & 0xFFFFFFFF
         self.D = (self.D + d) & 0xFFFFFFFF
 
+    # 逆序字节序
     def __reverse_bytes(self, n):
         return int.from_bytes(n.to_bytes(4, byteorder='little'), byteorder='big')
 
+    # 计算MD5哈希
     def digest(self, msg):
         # 填充消息并分块
         msg = self.__pad_message(msg)

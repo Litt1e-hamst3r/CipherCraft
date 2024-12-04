@@ -30,7 +30,6 @@ class DiffieHellman:
     def __generate_public_key(self, private_key):
         """
         使用给定的私钥计算公钥。
-        
         :param private_key: 私钥
         :return: 公钥
         """
