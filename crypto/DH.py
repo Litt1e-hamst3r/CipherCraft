@@ -30,17 +30,12 @@ class DiffieHellman:
     def __generate_public_key(self, private_key):
         """
         使用给定的私钥计算公钥。
-        :param private_key: 私钥
-        :return: 公钥
         """
         return pow(self.g, private_key, self.p)
     
     def generate_shared_secret(self, other_public_key):
         """
         使用对方的公钥计算共享密钥。
-        
-        :param other_public_key: 对方的公钥
-        :return: 共享密钥
         """
         return pow(other_public_key, self.private_key, self.p)
 

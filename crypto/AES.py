@@ -66,22 +66,39 @@ class AES_Cipher:
                 S[12], S[ 9], S[ 6], S[ 3]]
 
     def __mul_with_mod(self, poly1, poly2, mod=0b100011011):
-        # 多项式相乘
+        """
+        在给定模下计算两个多项式的乘法。
+        poly1 -- 第一个多项式，表示为一个整数。
+        poly2 -- 第二个多项式，表示为一个整数。
+        mod -- 模多项式，默认值为0b100011011，用于约束结果的宽度。
+        """
+        # 初始化结果为0，表示多项式的乘法结果。
         result = 0
+        # 遍历poly2的每一位，如果当前位为1，则将poly1左移index位后与result进行异或。
         for index in range(poly2.bit_length()):
             if poly2 & 1 << index:
                 result ^= poly1 << index
+        # 当结果的位长度超过8位时，通过模多项式约束结果，确保结果不超过8位。
         while result.bit_length() > 8:
             result ^= mod << result.bit_length() - 9
+        # 返回约束后的结果。
         return result
 
     def __matrix_mul(self, M1, M2):
-        # 列混合
+        """
+        执行矩阵乘法，但针对特定的列混合操作。
+        M: 一个包含16个元素的一维列表，代表两个输入矩阵列混合操作后的结果。
+        """
+        # 初始化结果矩阵M为全零，长度为16，用于存储最终的列混合结果
         M = [0] * 16
+        # 遍历矩阵的每一行和每一列
         for row in range(4):
             for col in range(4):
+                # 对每个元素进行列混合计算
                 for r in range(4):
+                    # 使用异或操作(^=)和自定义的__mul_with_mod方法进行列混合
                     M[row + col*4] ^= self.__mul_with_mod(M1[row][r], M2[r+col*4])
+        # 返回计算后的矩阵
         return M
 
     def __T(self, w_data, n):

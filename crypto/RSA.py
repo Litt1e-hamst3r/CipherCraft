@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print(f"Public Key: {public_key}")
     print(f"Private Key: {private_key}")
 
-    plaintext = b'fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff111212121212234567890qwertyuio1234512321312367890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio1234567890qwertyuio'
+    plaintext = b'hello RSA'
     ciphertext = rsa.encrypt(plaintext, public_key)
     decrypted_text = rsa.decrypt(ciphertext, private_key)
 

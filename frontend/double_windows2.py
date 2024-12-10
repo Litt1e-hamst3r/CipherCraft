@@ -11,6 +11,8 @@ import os
 import sys
 import threading 
 
+import socket
+
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 将项目根目录添加到 sys.path
 sys.path.append(project_root)
@@ -314,40 +316,52 @@ class Window2(QWidget):
             # 接受连接
             network_handler = NetworkHandler(ip, port)
             network_handler.socket.listen(1)
+            server_socket = network_handler.socket
             client_socket, addr = network_handler.socket.accept()
             network_handler.socket = client_socket
-            # print(f"Server started on {network_handler.host}:{network_handler.port}")
-            # print(f"Connected to {addr}")
+            print(f"Server started on {network_handler.host}:{network_handler.port}")
+            print(f"Connected to {addr}")
+
             ip, _ = addr
             target_port, dec = receive_once(network_handler)
             self.addr_received.emit((ip, target_port))
             self.logger.info(f"Connected to {addr}, Target addr: {ip}:{target_port}")
+
             if isinstance(dec, dict) :
                 self.logger.error(f"Error: {dec['error_message']}")
                 self.data_error.emit(dec)
+            if isinstance(dec, str):
+                self.logger.info(f"Received data: {dec}")
             else:
                 try:
                     self.logger.info(f"Received data: {dec.decode()}")
                     self.data_received.emit(dec.decode())  # 发射信号，传递解码后的数据
                 except: 
                     self.logger.error(f"Error: {dec}")
-            network_handler.close()
+
+            # 关闭连接
+            server_socket.close()
+            client_socket.close()
+
+    def is_port_in_use(self, port):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
     def start_receive_thread(self, ip, port):
         while True:
-            try:
-                network_handler = NetworkHandler(ip, port)
-                network_handler.socket.listen(1)
-                network_handler.close()
-                break
-            except Exception:
+            if self.is_port_in_use(port):
+                self.logger.warning(f"Port {port} is already in use. Trying the next port...")
                 port += 1
-                print(f"更新 port 为 {port}")
+            else:
+                break
+        
         self.port = port
-        self.logger.info(f"Server started on {network_handler.host}:{network_handler.port}, receive thread started on port {port}")
+        self.logger.info(f"Server started on {ip}:{port}, receive thread started on port {port}")
+        
         # 创建线程对象并传递 self 作为参数
-        thread = threading.Thread(target=self.receive_thread, args=(ip, port))
+        self.receive_thread_obj = threading.Thread(target=self.receive_thread, args=(ip, port))
         # 设置线程为守护线程
-        thread.daemon = True
+        self.receive_thread_obj.daemon = True
         # 启动线程
-        thread.start()
-        return thread
+        self.receive_thread_obj.start()
+        return self.receive_thread_obj

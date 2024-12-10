@@ -373,4 +373,6 @@ class DropWidget(QWidget):
             self.logger.info(f"{result}")
         else:
             self.logger.info(f"result: {result}")
+        if isinstance(result, list):
+            result = json.dumps(result, ensure_ascii=False)
         self.text_edit_output.setPlainText(result)

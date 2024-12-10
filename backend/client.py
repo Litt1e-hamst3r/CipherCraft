@@ -30,7 +30,7 @@ def get_DHkey_C(network_handler):
     shared_secret = dh.generate_shared_secret(server_public_key)
     return shared_secret
 
-# # 接收RSA公钥
+# 接收RSA公钥
 def receive_RSA_public_key(network_handler):
     data = network_handler.receive_json()
     return data

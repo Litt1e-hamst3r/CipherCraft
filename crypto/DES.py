@@ -109,7 +109,7 @@ class DES_Cipher:
         return result
 
     def __f_function(self, R, bin_key):
-        """轮函数"""
+        """ 轮函数 """
         # 将R由32位扩展成48位
         R_ext = [R[i - 1] for i in self.E]
         # 与子密钥进行逐位异或

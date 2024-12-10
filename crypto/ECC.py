@@ -63,14 +63,13 @@ class Point:
         # 如果当前点和其他点的x坐标相同，说明它们在垂直于x轴的直线上，结果为无穷远点。
         if self.x == other.x:
             return Point(None, None, True, a=self.a, p=self.p)
-        
         # 计算两点连线的斜率m。
         m = (other.y - self.y) * mod_inverse(other.x - self.x, self.p)
         # 根据斜率m计算结果点的x坐标。
         x_r = (m**2 - self.x - other.x) % self.p
         # 根据斜率m和x坐标计算结果点的y坐标。
         y_r = (m * (self.x - x_r) - self.y) % self.p
-        # 返回结果点。
+
         return Point(x_r, y_r, a=self.a, p=self.p)
     
     def double(self):
@@ -109,7 +108,6 @@ class Point:
                 result += addend
             # 对加数进行倍乘操作，即计算当前点的两倍点
             addend = addend.double()
-            # 右移k的二进制表示，为下一轮循环做准备
             k >>= 1
         
         # 返回最终的乘法结果点

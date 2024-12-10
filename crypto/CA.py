@@ -48,7 +48,7 @@ class CA_Cipher:
     def decrypt(self, ciphertext):
         # 解密过程与加密过程相同
         return self.encrypt(ciphertext)
-
+ 
 # 示例使用
 if __name__ == "__main__":
     seed = [0, 1, 1, 0, 1, 0, 1]    # 初始状态
